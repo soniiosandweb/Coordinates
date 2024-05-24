@@ -588,7 +588,7 @@ function New() {
                                     {pdfItems.map((pdf, indx)=>(
                                         (res.id === pdf.start.id ? 
                                             <tr key={indx}>
-                                                <td>{pdf.start.id +1}</td>
+                                                <td>{index +1}</td>
                                                 <td>{pdf.start.name}</td>
                                                 <td>{pdf.end.name}</td>
                                                 <td>{pdf.distance}</td>
