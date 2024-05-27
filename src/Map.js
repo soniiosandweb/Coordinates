@@ -16,7 +16,7 @@ function Map() {
   // It will run when page is load//
   const { isLoaded } = useJsApiLoader({
     // Goggle Map Api //
-    googleMapsApiKey: "AIzaSyDK7__8q3wspnLRdnMPtjVkSuCNaHnh0nU",
+    googleMapsApiKey: process.env.REACT_APP_API_Map_Key,
     libraries: ["places"],
   });
   const [fileInputKey, setFileInputKey] = useState(0);
@@ -59,7 +59,7 @@ function Map() {
             //   title: "Current Location",
             // });
             // Fetch location details using Google Maps Geocoding API
-            const apiKey = "AIzaSyDK7__8q3wspnLRdnMPtjVkSuCNaHnh0nU";
+            const apiKey = process.env.REACT_APP_API_Map_Key;
             const response = await fetch(
               `https://maps.googleapis.com/maps/api/geocode/json?latlng=${pos.lat},${pos.lng}&key=${apiKey}`
             );
