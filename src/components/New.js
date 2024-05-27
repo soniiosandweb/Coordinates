@@ -295,6 +295,21 @@ function New() {
   // This function will extract text from a pdf file //
   function extractText(event) {
 
+    setDistance("");
+    setDuration("");
+
+    if (prevRoute.length) {
+      prevRoute.forEach((prevRoute)=> {
+        prevRoute.setMap(null);
+      })
+    }
+
+    if (marker.length) {
+      marker.forEach((marker)=> {
+        marker.setMap(null)
+      })
+    }
+
     setLoadingData(true);
     
     const file = event.target.files[0];
