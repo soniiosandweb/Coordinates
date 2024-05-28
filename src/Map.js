@@ -607,7 +607,11 @@ function Map() {
                     <ModalCloseButton />
                     <ModalBody>
                       <Box className="coordinates-form-container">
-
+                        {formData ?
+                          <form>
+                            
+                          </form>
+                        : null}
                       </Box>
 
                     </ModalBody>
