@@ -4,15 +4,7 @@ input.chakra-input.css-1qpq6db.pac-target-input {
 input.chakra-input.css-1qpq6db.pac-target-input {
   border: 1px solid;
 }   
-button.chakra-button.css-io1gw7 {
-  left: 30px;
-}
-.chakra-select__wrapper.css-42b2qy {
-  width: 20%;
-}
-td.data {
-  width: 475px;
-}
+
 header#chakra-modal--header-\:r9\: {
   text-align: center !important;
   text-transform: capitalize;
@@ -22,13 +14,37 @@ header#chakra-modal--header-\:r9\: {
 input.chakra-input.css-1cjy4zv {
   border: 1px solid;
 }
-p.chakra-text.set.css-0 {
+.distance {
   font-weight: 700;
 }
-table tr td{
-  border: 1px solid #000;
-  padding: 5px;
+
+.text-center{
+  text-align: center !important;
 }
-table {
+.table-container {
   margin: 20px;
+}
+
+.table-container table {
+  border-collapse: collapse;
+  width: 100%;
+  margin-bottom: 20px;
+}
+  
+.table-container th,.table-container td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;font-weight: 600;
+}
+  
+.table-container th {
+  background-color: #000000;
+  color: aliceblue;
+}
+  
+.table-container tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+.css-1u3fsso{
+  width: auto !important;
 }

@@ -2,7 +2,6 @@ import React, { useRef, useState, useEffect } from 'react';
 import { Box, Button, ButtonGroup, Flex, HStack, IconButton, Input, Text, } from '@chakra-ui/react';
 import { FaLocationArrow, FaTimes } from 'react-icons/fa';
 import { useJsApiLoader, GoogleMap, Autocomplete, DirectionsRenderer } from '@react-google-maps/api';
-import './App.css';
 import pdfToText from 'react-pdftotext';
 import { useToast } from '@chakra-ui/react'
 
@@ -291,8 +290,8 @@ function App() {
                     </ButtonGroup>
                 </HStack>
                 <HStack spacing={4} mt={4} justifyContent='space-between'>
-                    <Text className='set'>Distance: {distance} </Text>
-                    <Text className='set'>Duration: {duration} </Text>
+                    <Text className='distance'>Distance: {distance} </Text>
+                    <Text className='distance'>Duration: {duration} </Text>
                     <IconButton
                         aria-label='center back'
                         icon={<FaLocationArrow />}

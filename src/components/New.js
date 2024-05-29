@@ -505,6 +505,7 @@ function New() {
           </HStack>
           <HStack spacing={8} mt={5} justifyContent="space-between">
             <Select
+              flex={1}
               value={selectedLocation}
               onChange={(e) => handleCoordinateSelection(e.target.value)}
             >
@@ -519,8 +520,8 @@ function New() {
                   ))
                 : ""}
             </Select>
-            <Text className="set">Distance: {distance} </Text>
-            <Text className="set">Duration: {duration} </Text>
+            <Text flex={1} className="distance">Distance: {distance} </Text>
+            <Text flex={1} className="distance">Duration: {duration} </Text>
             <Button onClick={distancess} colorScheme="black" variant="outline">
               Table Data
             </Button>

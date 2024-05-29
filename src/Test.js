@@ -2,8 +2,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable no-unused-vars */
 import React, { useRef, useState, useEffect } from "react";
-import "./App.css";
-import "./table.css";
 import pdfToText from "react-pdftotext";
 import { FaTimes } from "react-icons/fa";
 import { AlertTitle, useToast } from "@chakra-ui/react";
@@ -486,6 +484,7 @@ function App() {
                 </HStack>
                 <HStack spacing={8} mt={5} justifyContent="space-between">
                     <Select
+                        flex={1}
                         value={selectedLocation}
                         onChange={(e) => handleCoordinateSelection(e.target.value)}>
 
@@ -503,8 +502,8 @@ function App() {
                             return null;
                         })}
                     </Select>
-                    <Text className="set">Distance: {distance} </Text>
-                    <Text className="set">Duration: {duration} </Text>
+                    <Text flex={1} className="distance">Distance: {distance} </Text>
+                    <Text flex={1} className="distance">Duration: {duration} </Text>
                     <Button onClick={onOpen} colorScheme="black" variant="outline">
                         Table Data
                     </Button>

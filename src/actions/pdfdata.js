@@ -1,5 +1,6 @@
 import { 
     PDFDATA,
+    PDFERROR
 } from "./types";
 
 export const retrievePdfData = (start, end) => async (dispatch) =>{
@@ -26,6 +27,10 @@ export const retrievePdfData = (start, end) => async (dispatch) =>{
 
     }
     catch(err){
+        dispatch( {
+            type: PDFERROR,
+            payload: err,
+        })
         console.log(err);
     }
 }

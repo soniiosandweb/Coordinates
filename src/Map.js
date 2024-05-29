@@ -3,8 +3,7 @@ import { FaTimes } from "react-icons/fa";
 import { useToast } from "@chakra-ui/react";
 import { sortByDistance } from "sort-by-distance";
 import { LoadScript,GoogleMap, Autocomplete } from "@react-google-maps/api";
-import { Box, Button, ButtonGroup, Flex, HStack, IconButton, Input, Text, Select, Spinner} from "@chakra-ui/react";
-import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure } from "@chakra-ui/react";
+import { Box, Button, ButtonGroup, Flex, HStack, IconButton, Input, Text, Select, Spinner, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure, FormControl } from "@chakra-ui/react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import {retrievePdfData} from './actions/pdfdata'
@@ -27,7 +26,7 @@ function Map() {
   const [file, setFile] = useState("");
   const [loadingData, setLoadingData] = useState(false);
   const dispatch = useDispatch();
-  const {pdfItems} = useSelector((state) => state.pdfcontents);
+  const {pdfItems, error} = useSelector((state) => state.pdfcontents);
 
   let totalDist = [];
 
@@ -36,7 +35,7 @@ function Map() {
 
   const modalTable = useDisclosure();
   const modalForm = useDisclosure();
-  const [formData, setFormData] = useState(null);
+  const [formData, setFormData] = React.useState([]);
 
   useEffect(() => {
 
@@ -89,8 +88,6 @@ function Map() {
   // calculate route function//
   async function calculateRoute() {
     
-    setLoadingData(true);
-
     // This condition will show alert error for empty input//
     if (!points || points.length === 0) {
       if (
@@ -107,6 +104,7 @@ function Map() {
 
         return;
       }
+      setLoadingData(true);
       // It will calculate route between two points start / finish//
       const directionsService = new window.google.maps.DirectionsService();
       const directionsRenderer = new window.google.maps.DirectionsRenderer({
@@ -148,6 +146,8 @@ function Map() {
           isClosable: true,
         });
       } else {
+
+        setLoadingData(true);
 
         if (prevRoute.length) {
           prevRoute.forEach((prevRoute)=> {
@@ -204,7 +204,15 @@ function Map() {
                   setLoadingData(false);
 
                 } else {
-                  window.alert("Directions request failed due to " + status);
+                  // window.alert("Directions request failed due to " + status);
+                  console.log("Directions request failed due to " + status)
+                  toast({
+                    description: "Error: Please submit Correct Form Data.",
+                    position: "top",
+                    status: "error",
+                    duration: 2500,
+                    isClosable: true,
+                  });
                   setLoadingData(false);
                 }
               }
@@ -268,7 +276,7 @@ function Map() {
     var hours = Math.floor(totalTime / 3600); // Convert total time to hours
     var minutes = Math.floor((totalTime % 3600) / 60); // Calculate remaining minutes
     setDistance(totalDist + " km");
-    setDuration(hours + " hours and " + minutes + " minutes");
+    setDuration(hours + " hrs and " + minutes + " mins.");
  
   }
 
@@ -319,30 +327,35 @@ function Map() {
     
     const file = event.target.files[0];
     setFile(event.target.value)
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
+    if(file){
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
 
-    reader.onload = async (e) => {
-      axios({
-        method: "post",
-        url: "https://iosandweb.net/shortestpathfinder/api/pdf-txt.php",
-        data: JSON.stringify({
-          pdfFile: reader.result,
-        }),
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      })
-      .then(function (response) {
-        if (response.data) {
-          setFormData(response.data);
-          modalTable.onOpen();
+      reader.onload = async (e) => {
+        axios({
+          method: "post",
+          url: "https://iosandweb.net/shortestpathfinder/api/pdf-txt.php",
+          data: JSON.stringify({
+            pdfFile: reader.result,
+          }),
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        })
+        .then(function (response) {
+          if (response.data) {
+            setFormData(response.data);
+            modalForm.onOpen();
+            setLoadingData(false)
+          }
+        })
+        .catch(function (response) {
+          console.log(response);
           setLoadingData(false)
-        }
-      })
-      .catch(function (response) {
-        console.log(response);
-        setLoadingData(false)
-      });
-    };
+        });
+      };
+    } else {
+      setLoadingData(false)
+    }
+    
   }
 
   // Calculate Table Distance
@@ -423,7 +436,33 @@ function Map() {
 
   //////////////This code for pdf cordinates table//////////////
   function distancess() {
-    if(points){
+    if(error){
+      toast({
+        description: "Error: Please submit Correct Form data.",
+        position: "top",
+        status: "error",
+        duration: 2500,
+        isClosable: true,
+      });
+    } else {
+
+      if(points){
+        modalTable.onOpen();
+      } else {
+        toast({
+          description: "Error: Please submit Form Data First.",
+          position: "top",
+          status: "error",
+          duration: 2500,
+          isClosable: true,
+        });
+      }
+    }
+    
+  }
+
+  function openFormModal(){
+    if(file){
       modalForm.onOpen();
     } else {
       toast({
@@ -435,6 +474,64 @@ function Map() {
       });
     }
   }
+
+  // Delete form row function
+  const deleteFormRow = (index) => {
+    const newInputFields = [...formData];
+    newInputFields.splice(index, 1);
+    setFormData(newInputFields);
+  }
+
+  const onLocationNameChange = (value, index) => {
+    const newInputFields = [...formData];
+    newInputFields[index].name = value;
+    setFormData(newInputFields);
+  }
+
+  const onLongitudeChange = (value, index) => {
+    const newInputFields = [...formData];
+    newInputFields[index].lng = value;
+    setFormData(newInputFields);
+  }
+
+  const onLatitudeChange = (value, index) => {
+    const newInputFields = [...formData];
+    newInputFields[index].lat = value;
+    setFormData(newInputFields);
+  }
+
+  const onExtraDataChange = (value, index) => {
+    const newInputFields = [...formData];
+    newInputFields[index].extra_data = value;
+    setFormData(newInputFields);
+  }
+
+  const handleFormSubmit = (e) => {
+    e.preventDefault();
+    let pointsArray = [];
+    formData.forEach((data, index) => {
+      if(isNaN(parseFloat(data.lng)) || isNaN(parseFloat(data.lat))){
+        return false;
+      }
+      pointsArray.push({"id": index, "name": data.name, "lng": parseFloat(data.lng), "lat": parseFloat(data.lat)})
+    })
+    if(formData.length === pointsArray.length){
+      updatePoints(pointsArray);
+      setTableData(pointsArray);
+      calculateDistancePath(pointsArray);
+      modalForm.onClose();
+    } else {
+      toast({
+        description: "Error: Invalid values...",
+        position: "top",
+        status: "error",
+        duration: 2500,
+        isClosable: true,
+      });
+    }
+    console.log(pointsArray)
+    
+  };
 
   return (
     <Flex position="relative" flexDirection="column" alignItems="center" h="100vh" w="100vw">
@@ -475,46 +572,37 @@ function Map() {
           <HStack spacing={2} justifyContent="space-between">
             <Box flexGrow={1}>
               <Autocomplete>
-                <Input
-                  type="text"
-                  defaultValue={currentlocation}
-                  placeholder="Start"
-                  ref={originRef}
-                />
+                <Input type="text" defaultValue={currentlocation} placeholder="Start" name="start_location" ref={originRef} />
               </Autocomplete>
             </Box>
+
             <Box flexGrow={1}>
               <Autocomplete>
-                <Input type="text" placeholder="Finish" ref={destinationRef} />
+                <Input type="text" placeholder="Finish" ref={destinationRef} name="destination_location" />
               </Autocomplete>
             </Box>
-            <input
-              key={fileInputKey}
-              value={file}
-              type="file"
-              accept="application/pdf"
-              onChange={extractText}
-            />
+
+            <Box flexGrow={1}>
+              <input key={fileInputKey} value={file} type="file" accept="application/pdf" name="pdf_file" onChange={extractText} />
+            </Box>
+            
             <ButtonGroup>
               <Button colorScheme="blue" type="submit" onClick={calculateRoute}>
                 Calculate Route
               </Button>
-              <IconButton
-                aria-label="center back"
-                icon={<FaTimes />}
-                onClick={clearRoute}
-              />
+              <IconButton aria-label="center back" icon={<FaTimes />} onClick={clearRoute} />
             </ButtonGroup>
           </HStack>
-          <HStack spacing={8} mt={5} justifyContent="space-between">
+
+          <HStack spacing={2} mt={5} justifyContent="space-between">
             <Select
+              flex={1}
               value={selectedLocation}
               onChange={(e) => handleCoordinateSelection(e.target.value)}
+              name="coordinate_selection"
             >
-              <option value="" disabled>
-                Select location
-              </option>
-              {tableData
+              <option value="" disabled>Select location</option>
+              {error ? null : tableData
                 ? tableData.map((coordinate, index) => (
                     <option key={index} value={JSON.stringify(coordinate)}>
                       {coordinate.name}
@@ -522,18 +610,29 @@ function Map() {
                   ))
                 : ""}
             </Select>
-            <Text className="set">Distance: {distance} </Text>
-            <Text className="set">Duration: {duration} </Text>
-            <Button onClick={distancess} colorScheme="black" variant="outline">
-              Table Data
-            </Button>
+
+            <Text flex={1} className="distance">Distance: {distance} </Text>
+            <Text flex={1} className="distance">Duration: {duration} </Text>
+
+            <Box display="flex" gap={2}>
+              <Button onClick={distancess} colorScheme="black" variant="outline">
+                Table Data
+              </Button>
+
+              <Button onClick={openFormModal} colorScheme="black" variant="outline">
+                Form Data
+              </Button>
+            </Box>
+
+          </HStack>
+        </Box>
             <div>
-              {modalForm.isOpen && (
+              {modalTable.isOpen && (
                 <Modal
                   size="full"
                   blockScrollOnMount={false}
-                  isOpen={modalForm.isOpen}
-                  onClose={modalForm.onClose}
+                  isOpen={modalTable.isOpen}
+                  onClose={modalTable.onClose}
                 >
                   <ModalOverlay />
                   <ModalContent>
@@ -544,7 +643,7 @@ function Map() {
                     <ModalBody>
                       <Box className="table-container">
 
-                        {
+                        {error ? null :
                           tableData && pdfItems? 
                           tableData.map((res, index)=>(
                               <table key={index} border="1">
@@ -581,7 +680,7 @@ function Map() {
                       </Button> */}
                     </ModalBody>
                     <ModalFooter>
-                      <Button colorScheme="blue" mr={3} onClick={modalForm.onClose}>
+                      <Button colorScheme="blue" mr={3} onClick={modalTable.onClose}>
                         Close
                       </Button>
                     </ModalFooter>
@@ -589,39 +688,79 @@ function Map() {
                 </Modal>
               )}
             </div>
-          </HStack>
-        </Box>
-          <div>
-              {modalTable.isOpen && (
-                <Modal
-                  size="full"
-                  blockScrollOnMount={false}
-                  isOpen={modalTable.isOpen}
-                  onClose={modalTable.onClose}
-                >
-                  <ModalOverlay />
-                  <ModalContent>
-                    <ModalHeader justifyContent={center} textAlign={center}>
-                      Pdf Cordinates Form
-                    </ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
-                      <Box className="coordinates-form-container">
-                        {formData ?
-                          <form>
+            <div>
+              {modalForm.isOpen && (
+                  <Modal
+                    size="full"
+                    blockScrollOnMount={false}
+                    isOpen={modalForm.isOpen}
+                    onClose={modalForm.onClose}
+                  >
+                    <ModalOverlay />
+                    <ModalContent>
+                      <ModalHeader justifyContent={center} textAlign={center}>
+                        Pdf Cordinates Form
+                      </ModalHeader>
+                      <ModalCloseButton />
+                      <ModalBody>
+                        <Box className="coordinates-form-container">
+                          {formData ?
                             
-                          </form>
-                        : null}
-                      </Box>
+                            <form method="POST" id="coordinatesForm" onSubmit={handleFormSubmit}>
+                              <table className="table-container" border="1">
+                                <tbody>
+                                  <tr>
+                                    <th style={{width: "5%"}} className="text-center">S.No.</th>
+                                    <th style={{width: "30%"}} className="text-center">Location Name</th>
+                                    <th style={{width: "15%"}} className="text-center">Latitude</th>
+                                    <th style={{width: "15%"}} className="text-center">Longitude</th>
+                                    <th style={{width: "30%"}} className="text-center">Extra Data</th>
+                                    <th style={{width: "5%"}} className="text-center">Action</th>
+                                  </tr>
+                                
+                                  {formData.map((data, index) => (
+                                    <tr key={index}>
+                                      <td className="text-center">{index+1}</td>
+                                      <td>
+                                        <FormControl isRequired>
+                                          <Input type="text" value={data['name']} placeholder='Location Name' name="location_name" className="form-input" onChange={(e) => onLocationNameChange(e.target.value, index)}/>
+                                        </FormControl>
+                                      </td>
+                                      <td>
+                                        <FormControl isRequired>
+                                          <Input type="text" value={data['lng']} placeholder='Latitude' name="longitude" className="form-input" onChange={(e) => onLongitudeChange(e.target.value, index)}/>
+                                        </FormControl>
+                                      </td>
+                                      <td>
+                                        <FormControl isRequired>
+                                          <Input type="text" value={data['lat']} placeholder='Longitude' name="latitude" className="form-input" onChange={(e) => onLatitudeChange(e.target.value, index)}/>
+                                        </FormControl>
+                                      </td>
+                                      <td>
+                                        <FormControl>
+                                          <Input type="text" value={data['extra_data']} placeholder='Extra Data' name="extra_data" className="form-input" onChange={(e) => onExtraDataChange(e.target.value, index)}/>
+                                        </FormControl>
+                                      </td>
+                                      <td className="text-center">
+                                        <IconButton aria-label="center back" icon={<FaTimes />} onClick={() => deleteFormRow(index)} />
+                                      </td>
+                                    </tr>
+                                  ))}
+                                </tbody>
+                              </table>
 
-                    </ModalBody>
-                    <ModalFooter>
-                      <Button colorScheme="blue" mr={3} onClick={modalTable.onClose}>
-                        Close
-                      </Button>
-                    </ModalFooter>
-                  </ModalContent>
-                </Modal>
+                              <Box marginTop={4} className="text-center">
+                                <Button colorScheme='blue' type='submit'>Submit</Button>
+                              </Box>
+                            
+                            </form>
+
+                          : null}
+                        </Box>
+
+                      </ModalBody>
+                    </ModalContent>
+                  </Modal>
               )}
             </div>
           { loadingData ? 
