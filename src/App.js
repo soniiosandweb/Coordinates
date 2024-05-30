@@ -14,7 +14,7 @@ function App() {
     <Routes>
 
       <Route path="/" element={<Layout />}>
-        <Route index element={<New/>} />
+        <Route index element={<Map/>} />
         <Route path="mark" element={<Mark />} />
         <Route path="backup" element={<Backup />} />
         <Route path="map" element={<Map />} />

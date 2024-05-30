@@ -125,6 +125,7 @@ function Map() {
       var location_option = {
         origin: originRef.current.value,
         destination: destinationRef.current.value,
+        provideRouteAlternatives: true,
         travelMode: window.google.maps.TravelMode.DRIVING,
       };
 
@@ -132,6 +133,7 @@ function Map() {
         location_option,
         (results, status) => {
           if (status === "OK") {
+            // console.log(results)
             directionsRenderer.setDirections(results);
       
             setPrevRoute([directionsRenderer]);
@@ -512,37 +514,56 @@ function Map() {
     }
   }
 
-  // Delete form row function
-  const deleteFormRow = (index) => {
+  // Add form row function
+  const addFormRow = () => {
     const newInputFields = [...formData];
-    newInputFields.splice(index, 1);
+    newInputFields.push({ 
+      item_name: '', 
+      item_price: '', 
+      item_quantity: '', 
+      item_cost: '', 
+    });
     setFormData(newInputFields);
   }
 
+  // Delete form row function
+  const deleteFormRow = (index) => {
+    if(formData.length >2 ){
+      const newInputFields = [...formData];
+      newInputFields.splice(index, 1);
+      setFormData(newInputFields);
+    }
+  }
+
+  // Location name change function
   const onLocationNameChange = (value, index) => {
     const newInputFields = [...formData];
     newInputFields[index].name = value;
     setFormData(newInputFields);
   }
 
+  // Longitude change function
   const onLongitudeChange = (value, index) => {
     const newInputFields = [...formData];
     newInputFields[index].lng = value;
     setFormData(newInputFields);
   }
 
+  // Latitude change function
   const onLatitudeChange = (value, index) => {
     const newInputFields = [...formData];
     newInputFields[index].lat = value;
     setFormData(newInputFields);
   }
 
+  // Extra data change function
   const onExtraDataChange = (value, index) => {
     const newInputFields = [...formData];
     newInputFields[index].extra_data = value;
     setFormData(newInputFields);
   }
 
+  // Form validate function
   const validateForm = (values) => {
     
     let errors = {};
@@ -560,6 +581,7 @@ function Map() {
     }
   };
 
+  // Location form submit function
   const handleFormSubmit = (event) => {
     if (event) event.preventDefault();
 
@@ -774,6 +796,11 @@ function Map() {
                       </ModalHeader>
                       <ModalCloseButton />
                       <ModalBody>
+
+                        <Box marginTop={0} marginBottom={10} className="text-center" display="flex" gap="10" justifyContent="end">
+                          <Button colorScheme='green' type='button' onClick={() => addFormRow()}>Add Coordinate</Button>
+                        </Box>
+
                         <Box className="coordinates-form-container">
                           {formData ?
                             
@@ -820,8 +847,8 @@ function Map() {
                                 </tbody>
                               </table>
 
-                              <Box marginTop={4} className="text-center">
-                                <Button colorScheme='blue' type='submit'>Submit</Button>
+                              <Box marginTop={10} className="text-center" display="flex" gap="10" justifyContent="center">
+                                <Button colorScheme='blue' type='submit' width="20%" height={12}>Submit</Button>
                               </Box>
                             
                             </form>
