@@ -147,106 +147,117 @@ function Map() {
         });
       } else {
 
-        setLoadingData(true);
-
-        if (prevRoute.length) {
-          prevRoute.forEach((prevRoute)=> {
-            prevRoute.setMap(null);
-          })
-        }
-
-        if (marker.length) {
-          marker.forEach((marker)=> {
-            marker.setMap(null)
-          })
-        }
-
-        const markers = [];
-
-        points.forEach((stop, index) => {
-          const marker = new window.google.maps.Marker({
-            position: stop,
-            map,
-            title: stop.name,
-            label: { text: `${index + 1}`, color: "white" },
+        if(error){
+          toast({
+            description: "Error: Please submit Correct Form data.",
+            position: "top",
+            status: "error",
+            duration: 2500,
+            isClosable: true,
           });
-          markers.push(marker);
-        });
-        setMarker(markers);
+        } else {
 
-        for (var a = 0, parts = [], max = 23; a < points.length; a = a + max)
-          parts.push(points.slice(a, a + max));
+          setLoadingData(true);
 
-        for (var b = 0; b < parts.length; b++) {
-          const directionsService = new window.google.maps.DirectionsService();
-          const directionsRenderer = new window.google.maps.DirectionsRenderer({
-            draggable: false,
-            map,
-            index: b,
-            suppressMarkers: true,
+          if (prevRoute.length) {
+            prevRoute.forEach((prevRoute)=> {
+              prevRoute.setMap(null);
+            })
+          }
+
+          if (marker.length) {
+            marker.forEach((marker)=> {
+              marker.setMap(null)
+            })
+          }
+
+          const markers = [];
+
+          points.forEach((stop, index) => {
+            const marker = new window.google.maps.Marker({
+              position: stop,
+              map,
+              title: stop.name,
+              label: { text: `${index + 1}`, color: "white" },
+            });
+            markers.push(marker);
           });
+          setMarker(markers);
 
-          // Calculate and display the route
-          async function calculateAndDisplayRoute(
-            services,
-            directionsRenderer
-          ) {
-            return await directionsService.route(
+          for (var a = 0, parts = [], max = 23; a < points.length; a = a + max)
+            parts.push(points.slice(a, a + max));
+
+          for (var b = 0; b < parts.length; b++) {
+            const directionsService = new window.google.maps.DirectionsService();
+            const directionsRenderer = new window.google.maps.DirectionsRenderer({
+              draggable: false,
+              map,
+              index: b,
+              suppressMarkers: true,
+            });
+
+            // Calculate and display the route
+            async function calculateAndDisplayRoute(
               services,
-              (response, status) => {
-                if (status === "OK") {
-                  directionsRenderer.setDirections(response);
+              directionsRenderer
+            ) {
+              return await directionsService.route(
+                services,
+                (response, status) => {
+                  if (status === "OK") {
+                    directionsRenderer.setDirections(response);
 
-                  setPrevRoute(prevRoute => [...prevRoute, directionsRenderer]);
+                    setPrevRoute(prevRoute => [...prevRoute, directionsRenderer]);
 
-                  computeTotalDistanceNew(response);
+                    computeTotalDistanceNew(response);
 
-                  setLoadingData(false);
+                    setLoadingData(false);
 
-                } else {
-                  // window.alert("Directions request failed due to " + status);
-                  console.log("Directions request failed due to " + status)
-                  toast({
-                    description: "Error: Please submit Correct Form Data.",
-                    position: "top",
-                    status: "error",
-                    duration: 2500,
-                    isClosable: true,
-                  });
-                  setLoadingData(false);
+                  } else {
+                    // window.alert("Directions request failed due to " + status);
+                    console.log("Directions request failed due to " + status)
+                    toast({
+                      description: "Error: Please submit Correct Form Data.",
+                      position: "top",
+                      status: "error",
+                      duration: 2500,
+                      isClosable: true,
+                    });
+                    setLoadingData(false);
+                  }
                 }
-              }
-            );
+              );
+            }
+
+            var waypoints = [];
+            // Waypoints does not include first station (origin) and last station (destination)
+            for (var j = 0; j < parts[b]?.length; j++) {
+              waypoints.push({ location: parts[b][j], stopover: false });
+            }
+
+            var origin =
+              center && b === 0
+                ? center
+                : b === 0
+                ? parts[0][0]
+                : parts[b - 1][parts[b - 1].length - 1];
+
+            var service_options = {
+              origin: origin,
+              destination: parts[b][parts[b].length - 1],
+              waypoints: waypoints,
+              optimizeWaypoints: true,
+              provideRouteAlternatives: true,
+              avoidFerries: false,
+              avoidHighways: false,
+              avoidTolls: false,
+              unitSystem: window.google.maps.UnitSystem.METRIC,
+              travelMode: window.google.maps.TravelMode.DRIVING,
+            };
+
+            // Trigger route calculation
+            calculateAndDisplayRoute(service_options, directionsRenderer);
           }
-
-          var waypoints = [];
-          // Waypoints does not include first station (origin) and last station (destination)
-          for (var j = 0; j < parts[b]?.length; j++) {
-            waypoints.push({ location: parts[b][j], stopover: false });
-          }
-
-          var origin =
-            center && b === 0
-              ? center
-              : b === 0
-              ? parts[0][0]
-              : parts[b - 1][parts[b - 1].length - 1];
-
-          var service_options = {
-            origin: origin,
-            destination: parts[b][parts[b].length - 1],
-            waypoints: waypoints,
-            optimizeWaypoints: true,
-            provideRouteAlternatives: true,
-            avoidFerries: false,
-            avoidHighways: false,
-            avoidTolls: false,
-            unitSystem: window.google.maps.UnitSystem.METRIC,
-            travelMode: window.google.maps.TravelMode.DRIVING,
-          };
-
-          // Trigger route calculation
-          calculateAndDisplayRoute(service_options, directionsRenderer);
         }
       }
     }
