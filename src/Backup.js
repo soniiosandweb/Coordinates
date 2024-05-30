@@ -10,7 +10,7 @@ function App() {
     // It will run when page is load//
     const { isLoaded } = useJsApiLoader({
         // Goggle Map Api //
-        googleMapsApiKey: process.env.REACT_APP_API_Map_Key,
+        googleMapsApiKey: process.env.REACT_APP_API_MAP_KEY,
         libraries: ['places'],
     });
 
@@ -40,8 +40,8 @@ function App() {
                         setCenter(pos);
 
                         // Fetch location details using Google Maps Geocoding API
-                        const apiKey = process.env.REACT_APP_API_Map_Key;
-                        const response = await fetch(`https://maps.googleapis.com/maps/api/geocode/json?latlng=${pos.lat},${pos.lng}&key=${apiKey}`);
+                        const apiKey = process.env.REACT_APP_API_MAP_KEY;
+                        const response = await fetch(`${process.env.REACT_APP_API_MAP_URL}?latlng=${pos.lat},${pos.lng}&key=${apiKey}`);
                         const data = await response.json();
 
                         if (data.results && data.results.length > 0) {

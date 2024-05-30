@@ -49,9 +49,9 @@ function Map() {
             };
             setCenter(pos);
             setDefaultCenter(pos);
-            const apiKey = process.env.REACT_APP_API_Map_Key;
+            const apiKey = process.env.REACT_APP_API_MAP_KEY;
             const response = await fetch(
-              `https://maps.googleapis.com/maps/api/geocode/json?latlng=${pos.lat},${pos.lng}&key=${apiKey}`
+              `${process.env.REACT_APP_API_MAP_URL}?latlng=${pos.lat},${pos.lng}&key=${apiKey}`
             );
             const data = await response.json();
 
@@ -345,7 +345,7 @@ function Map() {
       reader.onload = async (e) => {
         axios({
           method: "post",
-          url: "https://iosandweb.net/shortestpathfinder/api/pdf-txt.php",
+          url: process.env.REACT_APP_PDF_TEXT_URL,
           data: JSON.stringify({
             pdfFile: reader.result,
           }),
@@ -581,7 +581,7 @@ function Map() {
   return (
     <Flex position="relative" flexDirection="column" alignItems="center" h="100vh" w="100vw">
       <LoadScript
-        googleMapsApiKey={process.env.REACT_APP_API_Map_Key}
+        googleMapsApiKey={process.env.REACT_APP_API_MAP_KEY}
         libraries={['places']}
       >
         <Box position="absolute" left={0} top={0} h="100%" w="100%">

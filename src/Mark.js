@@ -24,7 +24,7 @@ import {
   
   function App() {
     const { isLoaded } = useJsApiLoader({
-      googleMapsApiKey: process.env.REACT_APP_API_Map_Key,
+      googleMapsApiKey: process.env.REACT_APP_API_MAP_KEY,
       libraries: ['places'],
     })
   
