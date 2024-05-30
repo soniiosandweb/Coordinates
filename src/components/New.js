@@ -7,7 +7,7 @@ import { Box, Button, ButtonGroup, Flex, HStack, IconButton, Input, Text, Select
 import { Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure } from "@chakra-ui/react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import {retrievePdfData} from '../actions/pdfdata'
+import {resetPdfData, retrievePdfData} from '../actions/pdfdata'
 
 function New() {
   const fileInputKey = useRef();
@@ -310,6 +310,8 @@ function New() {
         marker.setMap(null)
       })
     }
+
+    dispatch(resetPdfData())
 
     setLoadingData(true);
     

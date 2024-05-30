@@ -6,7 +6,7 @@ import { LoadScript,GoogleMap, Autocomplete } from "@react-google-maps/api";
 import { Box, Button, ButtonGroup, Flex, HStack, IconButton, Input, Text, Select, Spinner, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure, FormControl } from "@chakra-ui/react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import {retrievePdfData} from './actions/pdfdata'
+import {resetPdfData, retrievePdfData} from './actions/pdfdata'
 
 function Map() {
   const fileInputKey = useRef();
@@ -506,20 +506,55 @@ function Map() {
     setFormData(newInputFields);
   }
 
-  const handleFormSubmit = (e) => {
-    e.preventDefault();
-    let pointsArray = [];
-    formData.forEach((data, index) => {
+  const validateForm = (values) => {
+    
+    let errors = {};
+
+    values.forEach((data, index) => {
       if(isNaN(parseFloat(data.lng)) || isNaN(parseFloat(data.lat))){
-        return false;
+        errors.index = "Invalid Coordinates";
       }
-      pointsArray.push({"id": index, "name": data.name, "lng": parseFloat(data.lng), "lat": parseFloat(data.lat)})
     })
-    if(formData.length === pointsArray.length){
-      updatePoints(pointsArray);
-      setTableData(pointsArray);
-      calculateDistancePath(pointsArray);
-      modalForm.onClose();
+
+    if (Object.keys(errors).length === 0) {
+      return true;
+    } else {
+      return false;
+    }
+  };
+
+  const handleFormSubmit = (event) => {
+    if (event) event.preventDefault();
+
+    if (validateForm(formData)) {
+
+      setDistance("");
+      setDuration("");
+
+      if (prevRoute.length) {
+        prevRoute.forEach((prevRoute)=> {
+          prevRoute.setMap(null);
+        })
+      }
+
+      if (marker.length) {
+        marker.forEach((marker)=> {
+          marker.setMap(null)
+        })
+      }
+
+      dispatch(resetPdfData()).then((response)=>{
+        let pointsArray = [];
+        formData.forEach((data, index) => {
+          pointsArray.push({"id": index, "name": data.name, "lng": parseFloat(data.lng), "lat": parseFloat(data.lat)})
+        })
+
+        updatePoints(pointsArray);
+        setTableData(pointsArray);
+        calculateDistancePath(pointsArray);
+        modalForm.onClose();
+      })
+
     } else {
       toast({
         description: "Error: Invalid values...",
@@ -529,7 +564,6 @@ function Map() {
         isClosable: true,
       });
     }
-    console.log(pointsArray)
     
   };
 

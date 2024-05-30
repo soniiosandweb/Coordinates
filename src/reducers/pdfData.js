@@ -1,6 +1,7 @@
 import { 
     PDFDATA,
-    PDFERROR
+    PDFERROR,
+    RESETDATA
 } from "../actions/types";
 
 const initialState = {
@@ -21,9 +22,11 @@ function pdfReducer(state = initialState, action){
         case PDFERROR:
             return{
                 ...state,
-                pdfItems: [],
                 error: payload
             }
+        
+        case RESETDATA:
+            return initialState
             
         default:
             return state;
