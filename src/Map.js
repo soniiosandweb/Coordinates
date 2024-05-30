@@ -105,20 +105,6 @@ function Map() {
         return;
       }
       setLoadingData(true);
-      // It will calculate route between two points start / finish//
-      const directionsService = new window.google.maps.DirectionsService();
-      const directionsRenderer = new window.google.maps.DirectionsRenderer({
-        map,
-        suppressMarkers: false,
-      });
-
-      const results = await directionsService.route({
-        origin: originRef.current.value,
-        destination: destinationRef.current.value,
-        travelMode: window.google.maps.TravelMode.DRIVING,
-      });
-
-      directionsRenderer.setDirections(results);
 
       if (prevRoute.length) {
         prevRoute.forEach((prevRoute)=> {
@@ -126,13 +112,51 @@ function Map() {
         })
       }
 
-      setPrevRoute([directionsRenderer]);
+      setDistance("");
+      setDuration("");
 
-      setLoadingData(false);
+      // It will calculate route between two points start / finish//
+      const directionsService = new window.google.maps.DirectionsService();
+      const directionsRenderer = new window.google.maps.DirectionsRenderer({
+        map,
+        suppressMarkers: false,
+      });
 
-      // setDirectionsResponse(results);
-      setDistance(results.routes[0].legs[0].distance.text);
-      setDuration(results.routes[0].legs[0].duration.text);
+      var location_option = {
+        origin: originRef.current.value,
+        destination: destinationRef.current.value,
+        travelMode: window.google.maps.TravelMode.DRIVING,
+      };
+
+      await directionsService.route(
+        location_option,
+        (results, status) => {
+          if (status === "OK") {
+            directionsRenderer.setDirections(results);
+      
+            setPrevRoute([directionsRenderer]);
+      
+            setLoadingData(false);
+      
+            // setDirectionsResponse(results);
+            setDistance(results.routes[0].legs[0].distance.text);
+            setDuration(results.routes[0].legs[0].duration.text);
+
+          } else {
+           
+            toast({
+              description: "Directions request failed due to " + status,
+              position: "top",
+              status: "error",
+              duration: 2500,
+              isClosable: true,
+            });
+            setLoadingData(false);
+          }
+        }
+      );
+
+      
     }
    
     // This alert for if pdf waypoint is more then 50 //
@@ -313,6 +337,8 @@ function Map() {
     setFile("")
     setPoints(null);
     setTableData(null);
+    
+    setSelectedLocation("");
     
   }
 
