@@ -613,15 +613,20 @@ function Map() {
 
     values.forEach((data, index) => {
       if(isNaN(parseFloat(data.lng))){
+
         errors.index = "Invalid Coordinates";
         inputRefs.current["lng_"+index].classList.add("focussed");
         inputRefs.current["lng_"+index].focus();
-      } else if(isNaN(parseFloat(data.lat))){
+
+      } else {
+        inputRefs.current["lng_"+index].classList.remove("focussed");
+      }
+      
+      if(isNaN(parseFloat(data.lat))){
         errors.index = "Invalid Coordinates";
         inputRefs.current["lat_"+index].classList.add("focussed");
         inputRefs.current["lat_"+index].focus();
       } else {
-        inputRefs.current["lng_"+index].classList.remove("focussed");
         inputRefs.current["lat_"+index].classList.remove("focussed");
       }
     })
@@ -666,14 +671,6 @@ function Map() {
         modalForm.onClose();
       })
 
-    } else {
-      toast({
-        description: "Error: Invalid Coordinates values...",
-        position: "top",
-        status: "error",
-        duration: 2500,
-        isClosable: true,
-      });
     }
     
   };
