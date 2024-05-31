@@ -4,6 +4,7 @@ import { useToast } from "@chakra-ui/react";
 import { sortByDistance } from "sort-by-distance";
 import { LoadScript,GoogleMap, Autocomplete } from "@react-google-maps/api";
 import { Box, Button, ButtonGroup, Flex, HStack, IconButton, Input, Text, Select, Spinner, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure, FormControl } from "@chakra-ui/react";
+import { CloseButton } from "@chakra-ui/react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
 import {resetPdfData, retrievePdfData} from './actions/pdfdata'
@@ -21,7 +22,6 @@ function Map() {
   const [selectedLocation, setSelectedLocation] = useState(currentlocation);
   const originRef = useRef();
   const destinationRef = useRef();
-  // const { isOpen, onOpen, onClose } = useDisclosure();
   const [tableData, setTableData] = useState(null);
   const [file, setFile] = useState("");
   const [loadingData, setLoadingData] = useState(false);
@@ -39,49 +39,49 @@ function Map() {
 
   useEffect(() => {
 
-      if (navigator.geolocation) {
+    if (navigator.geolocation) {
 
-        navigator.geolocation.getCurrentPosition(
-          async (position) => {
-            const pos = {
-              lat: position.coords.latitude,
-              lng: position.coords.longitude,
-            };
-            setCenter(pos);
-            setDefaultCenter(pos);
-            const apiKey = process.env.REACT_APP_API_MAP_KEY;
-            const response = await fetch(
-              `${process.env.REACT_APP_API_MAP_URL}?latlng=${pos.lat},${pos.lng}&key=${apiKey}`
-            );
-            const data = await response.json();
+      navigator.geolocation.getCurrentPosition(
+        async (position) => {
+          const pos = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude,
+          };
+          setCenter(pos);
+          setDefaultCenter(pos);
+          const apiKey = process.env.REACT_APP_API_MAP_KEY;
+          const response = await fetch(
+            `${process.env.REACT_APP_API_MAP_URL}?latlng=${pos.lat},${pos.lng}&key=${apiKey}`
+          );
+          const data = await response.json();
 
-            if (data.results && data.results.length > 0) {
-              const locationName = data.results[0].formatted_address;
-              setCurrentLocation(locationName);
-            } else {
-              console.log("Location name not found");
-            }
-          },
-          () => {
-            toast({
-              description:
-                "Please Allow The Location To Acces Your Current Location.",
-              position: "top",
-              status: "error",
-              duration: 3500,
-              isClosable: true,
-            });
+          if (data.results && data.results.length > 0) {
+            const locationName = data.results[0].formatted_address;
+            setCurrentLocation(locationName);
+          } else {
+            console.log("Location name not found");
           }
-        );
-      } else {
-        toast({
-          description: "Error: Your browser doesn't support geolocation.",
-          position: "top",
-          status: "error",
-          duration: 2500,
-          isClosable: true,
-        });
-      }
+        },
+        () => {
+          toast({
+            description:
+              "Please Allow The Location To Acces Your Current Location.",
+            position: "top",
+            status: "error",
+            duration: 3500,
+            isClosable: true,
+          });
+        }
+      );
+    } else {
+      toast({
+        description: "Error: Your browser doesn't support geolocation.",
+        position: "top",
+        status: "error",
+        duration: 2500,
+        isClosable: true,
+      });
+    }
 
   }, [ toast]);
 
@@ -108,7 +108,7 @@ function Map() {
 
       if (prevRoute.length) {
         prevRoute.forEach((prevRoute)=> {
-            prevRoute.setMap(null);
+          prevRoute.setMap(null);
         })
       }
 
@@ -140,7 +140,6 @@ function Map() {
       
             setLoadingData(false);
       
-            // setDirectionsResponse(results);
             setDistance(results.routes[0].legs[0].distance.text);
             setDuration(results.routes[0].legs[0].duration.text);
 
@@ -157,12 +156,11 @@ function Map() {
           }
         }
       );
-
-      
     }
    
-    // This alert for if pdf waypoint is more then 50 //
     if (points) {
+
+      // This alert for if pdf waypoint is more then 50 //
       if (points.length >= 50) {
         toast({
           description: "Please upload less then 50 waypoints...",
@@ -288,8 +286,8 @@ function Map() {
       }
     }
   }
-  // It will define the distance and duration of the route //
 
+  // It will define the distance and duration of the route //
   function computeTotalDistanceNew(result){
     
     if(result){
@@ -302,11 +300,11 @@ function Map() {
     var totalDist = 0;
     var totalTime = 0;
     results.forEach((result) => {
-        var myroute = result.routes[0];
-        for (var i = 0; i < myroute.legs.length; i++) {
-          totalDist += myroute.legs[i].distance.value;
-          totalTime += myroute.legs[i].duration.value;
-        }
+      var myroute = result.routes[0];
+      for (var i = 0; i < myroute.legs.length; i++) {
+        totalDist += myroute.legs[i].distance.value;
+        totalTime += myroute.legs[i].duration.value;
+      }
     })
     
     totalDist = totalDist / 1000;
@@ -365,7 +363,7 @@ function Map() {
     setLoadingData(true);
     
     const file = event.target.files[0];
-    setFile(event.target.value)
+    setFile(event.target.value);
     if(file){
       const reader = new FileReader();
       reader.readAsDataURL(file);
@@ -390,7 +388,7 @@ function Map() {
           console.log(response);
           setLoadingData(false)
         });
-      };
+      }
     } else {
       setLoadingData(false)
     }
@@ -473,8 +471,8 @@ function Map() {
     // setPoints(pathNew)
   };
 
-  //////////////This code for pdf cordinates table//////////////
-  function distancess() {
+  // Open coordinate table modal
+  function openTableModal() {
     if(error){
       toast({
         description: "Error: Please submit Correct Form data.",
@@ -500,6 +498,7 @@ function Map() {
     
   }
 
+  // Open coordinate form modal
   function openFormModal(){
     if(file){
       modalForm.onOpen();
@@ -563,6 +562,23 @@ function Map() {
     setFormData(newInputFields);
   }
 
+  // Longitude move value function
+  const onLongitudeMove = (index) => {
+    const newInputFields = [...formData];
+    newInputFields[index].lng = newInputFields[index].lat;
+    newInputFields[index].lat = newInputFields[index].extra_data;
+    newInputFields[index].extra_data = "";
+    setFormData(newInputFields);
+  }
+
+  // Latitude move value function
+  const onLatitudeMove = (index) => {
+    const newInputFields = [...formData];
+    newInputFields[index].lat = newInputFields[index].extra_data;
+    newInputFields[index].extra_data = "";
+    setFormData(newInputFields);
+  }
+
   // Form validate function
   const validateForm = (values) => {
     
@@ -616,7 +632,7 @@ function Map() {
 
     } else {
       toast({
-        description: "Error: Invalid values...",
+        description: "Error: Invalid Coordinates values...",
         position: "top",
         status: "error",
         duration: 2500,
@@ -645,23 +661,10 @@ function Map() {
             onLoad={(map) => setMap(map)}
             onUnmount={() => setMap(null)}
           >
-            {/* {directionsResponse && (
-              <DirectionsRenderer
-                directions={directionsResponse}
-                preserveViewport={true}
-              />
-            )} */}
           </GoogleMap>
         </Box>
-        <Box
-          p={4}
-          borderRadius="lg"
-          m={4}
-          bgColor="white"
-          shadow="base"
-          minW="container.md"
-          zIndex="1"
-        >
+
+        <Box p={4} borderRadius="lg" m={4} bgColor="white" shadow="base" minW="container.md" zIndex="1">
           <HStack spacing={2} justifyContent="space-between">
             <Box flexGrow={1}>
               <Autocomplete>
@@ -688,11 +691,7 @@ function Map() {
           </HStack>
 
           <HStack spacing={2} mt={5} justifyContent="space-between">
-            <Select
-              flex={1}
-              value={selectedLocation}
-              onChange={(e) => handleCoordinateSelection(e.target.value)}
-              name="coordinate_selection"
+            <Select flex={1} value={selectedLocation} onChange={(e) => handleCoordinateSelection(e.target.value)} name="coordinate_selection"
             >
               <option value="" disabled>Select location</option>
               {error ? null : tableData
@@ -701,14 +700,14 @@ function Map() {
                       {coordinate.name}
                     </option>
                   ))
-                : ""}
+                : null}
             </Select>
 
             <Text flex={1} className="distance">Distance: {distance} </Text>
             <Text flex={1} className="distance">Duration: {duration} </Text>
 
             <Box display="flex" gap={2}>
-              <Button onClick={distancess} colorScheme="black" variant="outline">
+              <Button onClick={openTableModal} colorScheme="black" variant="outline">
                 Table Data
               </Button>
 
@@ -719,154 +718,145 @@ function Map() {
 
           </HStack>
         </Box>
-            <div>
-              {modalTable.isOpen && (
-                <Modal
-                  size="full"
-                  blockScrollOnMount={false}
-                  isOpen={modalTable.isOpen}
-                  onClose={modalTable.onClose}
-                >
-                  <ModalOverlay />
-                  <ModalContent>
-                    <ModalHeader justifyContent={center} textAlign={center}>
-                      Pdf Cordinates Table
-                    </ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
-                      <Box className="table-container">
 
-                        {error ? null :
-                          tableData && pdfItems? 
-                          tableData.map((res, index)=>(
-                              <table key={index} border="1">
-                                  <tbody>
-                                    <tr>
-                                      <th style={{width: "10%"}}>S.no</th>
-                                      <th style={{width: "30%"}}>Start</th>
-                                      <th style={{width: "30%"}}>Finish</th>
-                                      <th style={{width: "15%"}}>Distance</th>
-                                      <th style={{width: "15%"}}>Duration</th>
-                                    </tr>
-                                      {pdfItems.map((pdf, indx)=>(
-                                          (res.id === pdf.start.id ? 
-                                              <tr key={indx}>
-                                                  <td>{pdf.start.id +1}</td>
-                                                  <td>{pdf.start.name}</td>
-                                                  <td>{pdf.end.name}</td>
-                                                  <td>{pdf.distance}</td>
-                                                  <td>{pdf.duration}</td>
-                                              </tr>
-                                              :
-                                              null
-                                          )
-                                      ))}
-                                  </tbody>
-                              </table>
-                          ))
-                          : null
-                        }
-                      </Box>
+        <Box>
+          {modalTable.isOpen && (
+            <Modal size="full" blockScrollOnMount={false} isOpen={modalTable.isOpen} onClose={modalTable.onClose}>
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader className="text-center">
+                  <h2 style={{fontSize: "xx-large"}}>Pdf Cordinates Table</h2>
+                </ModalHeader>
+                <ModalCloseButton fontSize="md" />
 
-                      {/* <Button colorScheme="red" mx={42}>
-                        Load More
-                      </Button> */}
-                    </ModalBody>
-                    <ModalFooter>
-                      <Button colorScheme="blue" mr={3} onClick={modalTable.onClose}>
-                        Close
-                      </Button>
-                    </ModalFooter>
-                  </ModalContent>
-                </Modal>
-              )}
-            </div>
-            <div>
-              {modalForm.isOpen && (
-                  <Modal
-                    size="full"
-                    blockScrollOnMount={false}
-                    isOpen={modalForm.isOpen}
-                    onClose={modalForm.onClose}
-                  >
-                    <ModalOverlay />
-                    <ModalContent>
-                      <ModalHeader justifyContent={center} textAlign={center}>
-                        Pdf Cordinates Form
-                      </ModalHeader>
-                      <ModalCloseButton />
-                      <ModalBody>
-
-                        <Box marginTop={0} marginBottom={10} className="text-center" display="flex" gap="10" justifyContent="end">
-                          <Button colorScheme='green' type='button' onClick={() => addFormRow()}>Add Coordinate</Button>
-                        </Box>
-
-                        <Box className="coordinates-form-container">
-                          {formData ?
-                            
-                            <form method="POST" id="coordinatesForm" onSubmit={handleFormSubmit}>
-                              <table className="table-container" border="1">
-                                <tbody>
-                                  <tr>
-                                    <th style={{width: "5%"}} className="text-center">S.No.</th>
-                                    <th style={{width: "30%"}} className="text-center">Location Name</th>
-                                    <th style={{width: "15%"}} className="text-center">Latitude</th>
-                                    <th style={{width: "15%"}} className="text-center">Longitude</th>
-                                    <th style={{width: "30%"}} className="text-center">Extra Data</th>
-                                    <th style={{width: "5%"}} className="text-center">Action</th>
+                <ModalBody>
+                  <Box className="table-container">
+                    {error ? null :
+                      tableData && pdfItems? 
+                        tableData.map((res, index)=>(
+                          <table key={index} border="1">
+                            <tbody>
+                              <tr>
+                                <th style={{width: "10%"}}>S.no</th>
+                                <th style={{width: "30%"}}>Start</th>
+                                <th style={{width: "30%"}}>Finish</th>
+                                <th style={{width: "15%"}}>Distance</th>
+                                <th style={{width: "15%"}}>Duration</th>
+                              </tr>
+                              {pdfItems.map((pdf, indx)=>(
+                                (res.id === pdf.start.id ? 
+                                  <tr key={indx}>
+                                    <td>{pdf.start.id +1}</td>
+                                    <td>{pdf.start.name}</td>
+                                    <td>{pdf.end.name}</td>
+                                    <td>{pdf.distance}</td>
+                                    <td>{pdf.duration}</td>
                                   </tr>
+                                : null
+                                )
+                              ))}
+                            </tbody>
+                          </table>
+                        ))
+                      : null
+                    }
+                  </Box>
+                </ModalBody>
+
+                <ModalFooter>
+                  <Button colorScheme="blue" mr={3} onClick={modalTable.onClose}>Close</Button>
+                </ModalFooter>
+              </ModalContent>
+            </Modal>
+          )}
+        </Box>
+        <Box>
+          {modalForm.isOpen && (
+            <Modal size="full" blockScrollOnMount={false} isOpen={modalForm.isOpen} onClose={modalForm.onClose}>
+              <ModalOverlay />
+              <ModalContent>
+                <ModalHeader className="text-center">
+                  <h2 style={{fontSize: "xx-large"}}>Pdf Cordinates Form</h2>
+                </ModalHeader>
+                <ModalCloseButton fontSize="md" />
+                
+                <ModalBody>
+
+                  <Box marginTop={0} marginBottom={10} className="text-center" display="flex" gap="10" justifyContent="end">
+                    <Button colorScheme='green' type='button' onClick={() => addFormRow()}>Add Coordinate</Button>
+                  </Box>
+
+                  <Box className="coordinates-form-container">
+                    {formData ?  
+                      <form method="POST" id="coordinatesForm" onSubmit={handleFormSubmit}>
+                        <table className="table-container" border="1">
+                          <tbody>
+                            <tr>
+                              <th style={{width: "5%"}} className="text-center">S.No.</th>
+                              <th style={{width: "30%"}} className="text-center">Location Name</th>
+                              <th style={{width: "15%"}} className="text-center">Latitude</th>
+                              <th style={{width: "15%"}} className="text-center">Longitude</th>
+                              <th style={{width: "30%"}} className="text-center">Extra Data</th>
+                              <th style={{width: "5%"}} className="text-center">Action</th>
+                            </tr>
                                 
-                                  {formData.map((data, index) => (
-                                    <tr key={index}>
-                                      <td className="text-center">{index+1}</td>
-                                      <td>
-                                        <FormControl isRequired>
-                                          <Input type="text" value={data['name']} placeholder='Location Name' name="location_name" className="form-input" onChange={(e) => onLocationNameChange(e.target.value, index)}/>
-                                        </FormControl>
-                                      </td>
-                                      <td>
-                                        <FormControl isRequired>
-                                          <Input type="text" value={data['lng']} placeholder='Latitude' name="longitude" className="form-input" onChange={(e) => onLongitudeChange(e.target.value, index)}/>
-                                        </FormControl>
-                                      </td>
-                                      <td>
-                                        <FormControl isRequired>
-                                          <Input type="text" value={data['lat']} placeholder='Longitude' name="latitude" className="form-input" onChange={(e) => onLatitudeChange(e.target.value, index)}/>
-                                        </FormControl>
-                                      </td>
-                                      <td>
-                                        <FormControl>
-                                          <Input type="text" value={data['extra_data']} placeholder='Extra Data' name="extra_data" className="form-input" onChange={(e) => onExtraDataChange(e.target.value, index)}/>
-                                        </FormControl>
-                                      </td>
-                                      <td className="text-center">
-                                        <IconButton aria-label="center back" icon={<FaTimes />} onClick={() => deleteFormRow(index)} />
-                                      </td>
-                                    </tr>
-                                  ))}
-                                </tbody>
-                              </table>
+                            {formData.map((data, index) => (
+                              <tr key={index}>
+                                <td className="text-center">{index+1}</td>
+                                <td>
+                                  <FormControl isRequired>
+                                    <Input type="text" value={data['name']} placeholder='Location Name' name="location_name" className="form-input" onChange={(e) => onLocationNameChange(e.target.value, index)}/>
+                                  </FormControl>
+                                </td>
+                                <td>
+                                  <FormControl isRequired>
+                                    <Input type="text" value={data['lng']} placeholder='Latitude' name="longitude" className="form-input" onChange={(e) => onLongitudeChange(e.target.value, index)}/>
+                                    {data['lng'] && /^[A-Za-z0-9]*$/.test(data['lng']) ? 
+                                      <CloseButton size='sm' position="absolute" right={0} top={0} zIndex={1} onClick={() => onLongitudeMove(index)} />
+                                    : null}
+                                  </FormControl>
+                                </td>
+                                <td>
+                                  <FormControl isRequired>
+                                    <Input type="text" value={data['lat']} placeholder='Longitude' name="latitude" className="form-input" onChange={(e) => onLatitudeChange(e.target.value, index)}/>
+                                    {data['lat'] && /^[A-Za-z0-9]*$/.test(data['lat']) ? 
+                                      <CloseButton size='sm' position="absolute" right={0} top={0} zIndex={1} onClick={() => onLatitudeMove(index)} />
+                                    : null}
+                                  </FormControl>
+                                </td>
+                                <td>
+                                  <FormControl>
+                                    <Input type="text" value={data['extra_data']} placeholder='Extra Data' name="extra_data" className="form-input" onChange={(e) => onExtraDataChange(e.target.value, index)}/>
+                                  </FormControl>
+                                </td>
+                                <td className="text-center">
+                                  <IconButton aria-label="center back" icon={<FaTimes />} onClick={() => deleteFormRow(index)} />
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
 
-                              <Box marginTop={10} className="text-center" display="flex" gap="10" justifyContent="center">
-                                <Button colorScheme='blue' type='submit' width="20%" height={12}>Submit</Button>
-                              </Box>
-                            
-                            </form>
-
-                          : null}
+                        <Box marginTop={5} className="text-center" display="flex" gap="10" justifyContent="center" position="sticky" bottom="0" zIndex={99} backgroundColor="white" padding="20px">
+                          <Button colorScheme='blue' type='submit' width="20%" height={12}>Submit</Button>
                         </Box>
+                            
+                      </form>
+                    : null}
+                  </Box>
 
-                      </ModalBody>
-                    </ModalContent>
-                  </Modal>
-              )}
-            </div>
-          { loadingData ? 
-            <Box position="fixed" left={0} top={0} h="100%" w="100%" backgroundColor="#000000b0" zIndex={99} display="flex" alignItems="center" justifyContent="center">
-              <Spinner thickness='4px' speed='0.65s' emptyColor='gray' color='white' size='xl' />
-            </Box>
-            : null
-          }
+                </ModalBody>
+              </ModalContent>
+            </Modal>
+          )}
+        </Box>
+
+        { loadingData ? 
+          <Box position="fixed" left={0} top={0} h="100%" w="100%" backgroundColor="#000000b0" zIndex={99} display="flex" alignItems="center" justifyContent="center">
+            <Spinner thickness='4px' speed='0.65s' emptyColor='gray' color='white' size='xl' />
+          </Box>
+          : null
+        }
       </LoadScript>
     </Flex>
   );
