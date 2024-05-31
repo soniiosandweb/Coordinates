@@ -45,3 +45,9 @@ input.chakra-input.css-1cjy4zv {
 .css-1u3fsso{
   width: auto !important;
 }
+.form-input.focussed {
+  border-color: red !important;
+}
+.form-input.focussed:focus-visible {
+  box-shadow: 0 0 0 1px red !important;
+}

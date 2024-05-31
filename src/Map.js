@@ -36,6 +36,7 @@ function Map() {
   const modalTable = useDisclosure();
   const modalForm = useDisclosure();
   const [formData, setFormData] = React.useState([]);
+  const inputRefs = useRef([]);
 
   useEffect(() => {
 
@@ -529,6 +530,8 @@ function Map() {
   const deleteFormRow = (index) => {
     if(formData.length >2 ){
       const newInputFields = [...formData];
+      inputRefs.current["lng_"+index].classList.remove("focussed");
+      inputRefs.current["lat_"+index].classList.remove("focussed");
       newInputFields.splice(index, 1);
       setFormData(newInputFields);
     }
@@ -545,6 +548,11 @@ function Map() {
   const onLongitudeChange = (value, index) => {
     const newInputFields = [...formData];
     newInputFields[index].lng = value;
+    if(isNaN(parseFloat(value))){
+      inputRefs.current["lng_"+index].classList.add("focussed");
+    } else {
+      inputRefs.current["lng_"+index].classList.remove("focussed");
+    }
     setFormData(newInputFields);
   }
 
@@ -552,6 +560,13 @@ function Map() {
   const onLatitudeChange = (value, index) => {
     const newInputFields = [...formData];
     newInputFields[index].lat = value;
+
+    if(isNaN(parseFloat(value))){
+      inputRefs.current["lat_"+index].classList.add("focussed");
+    } else {
+      inputRefs.current["lat_"+index].classList.remove("focussed");
+    }
+
     setFormData(newInputFields);
   }
 
@@ -568,6 +583,12 @@ function Map() {
     newInputFields[index].lng = newInputFields[index].lat;
     newInputFields[index].lat = newInputFields[index].extra_data;
     newInputFields[index].extra_data = "";
+    // inputRefs.current["lng_"+index].classList.remove("focussed");
+    if(isNaN(parseFloat(newInputFields[index].lng))){
+      inputRefs.current["lng_"+index].classList.add("focussed");
+    } else {
+      inputRefs.current["lng_"+index].classList.remove("focussed");
+    }
     setFormData(newInputFields);
   }
 
@@ -576,6 +597,12 @@ function Map() {
     const newInputFields = [...formData];
     newInputFields[index].lat = newInputFields[index].extra_data;
     newInputFields[index].extra_data = "";
+    // inputRefs.current["lat_"+index].classList.remove("focussed");
+    if(isNaN(parseFloat(newInputFields[index].lat))){
+      inputRefs.current["lat_"+index].classList.add("focussed");
+    } else {
+      inputRefs.current["lat_"+index].classList.remove("focussed");
+    }
     setFormData(newInputFields);
   }
 
@@ -585,8 +612,17 @@ function Map() {
     let errors = {};
 
     values.forEach((data, index) => {
-      if(isNaN(parseFloat(data.lng)) || isNaN(parseFloat(data.lat))){
+      if(isNaN(parseFloat(data.lng))){
         errors.index = "Invalid Coordinates";
+        inputRefs.current["lng_"+index].classList.add("focussed");
+        inputRefs.current["lng_"+index].focus();
+      } else if(isNaN(parseFloat(data.lat))){
+        errors.index = "Invalid Coordinates";
+        inputRefs.current["lat_"+index].classList.add("focussed");
+        inputRefs.current["lat_"+index].focus();
+      } else {
+        inputRefs.current["lng_"+index].classList.remove("focussed");
+        inputRefs.current["lat_"+index].classList.remove("focussed");
       }
     })
 
@@ -805,12 +841,27 @@ function Map() {
                                 <td className="text-center">{index+1}</td>
                                 <td>
                                   <FormControl isRequired>
-                                    <Input type="text" value={data['name']} placeholder='Location Name' name="location_name" className="form-input" onChange={(e) => onLocationNameChange(e.target.value, index)}/>
+                                    <Input 
+                                      type="text" 
+                                      value={data['name']} 
+                                      placeholder='Location Name' 
+                                      name="location_name" 
+                                      className="form-input" 
+                                      onChange={(e) => onLocationNameChange(e.target.value, index)}
+                                    />
                                   </FormControl>
                                 </td>
                                 <td>
                                   <FormControl isRequired>
-                                    <Input type="text" value={data['lng']} placeholder='Latitude' name="longitude" className="form-input" onChange={(e) => onLongitudeChange(e.target.value, index)}/>
+                                    <Input 
+                                      type="text" 
+                                      value={data['lng']} 
+                                      placeholder='Longitude' 
+                                      name="longitude" 
+                                      className="form-input" 
+                                      ref={(el) => (inputRefs.current["lng_"+index] = el)}
+                                      onChange={(e) => onLongitudeChange(e.target.value, index)}
+                                    />
                                     {data['lng'] && /^[A-Za-z0-9]*$/.test(data['lng']) ? 
                                       <CloseButton size='sm' position="absolute" right={0} top={0} zIndex={1} onClick={() => onLongitudeMove(index)} />
                                     : null}
@@ -818,7 +869,15 @@ function Map() {
                                 </td>
                                 <td>
                                   <FormControl isRequired>
-                                    <Input type="text" value={data['lat']} placeholder='Longitude' name="latitude" className="form-input" onChange={(e) => onLatitudeChange(e.target.value, index)}/>
+                                    <Input 
+                                      type="text" 
+                                      value={data['lat']} 
+                                      placeholder='Latitude' 
+                                      name="latitude" 
+                                      className="form-input" 
+                                      ref={(el) => (inputRefs.current["lat_"+index] = el)}
+                                      onChange={(e) => onLatitudeChange(e.target.value, index)}
+                                    />
                                     {data['lat'] && /^[A-Za-z0-9]*$/.test(data['lat']) ? 
                                       <CloseButton size='sm' position="absolute" right={0} top={0} zIndex={1} onClick={() => onLatitudeMove(index)} />
                                     : null}
@@ -826,7 +885,14 @@ function Map() {
                                 </td>
                                 <td>
                                   <FormControl>
-                                    <Input type="text" value={data['extra_data']} placeholder='Extra Data' name="extra_data" className="form-input" onChange={(e) => onExtraDataChange(e.target.value, index)}/>
+                                    <Input 
+                                      type="text" 
+                                      value={data['extra_data']} 
+                                      placeholder='Extra Data' 
+                                      name="extra_data" 
+                                      className="form-input" 
+                                      onChange={(e) => onExtraDataChange(e.target.value, index)}
+                                    />
                                   </FormControl>
                                 </td>
                                 <td className="text-center">
@@ -837,7 +903,7 @@ function Map() {
                           </tbody>
                         </table>
 
-                        <Box marginTop={5} className="text-center" display="flex" gap="10" justifyContent="center" position="sticky" bottom="0" zIndex={99} backgroundColor="white" padding="20px">
+                        <Box marginTop={5} className="text-center" display="flex" gap="10" justifyContent="center" bottom="0" zIndex={99} backgroundColor="white" padding="20px">
                           <Button colorScheme='blue' type='submit' width="20%" height={12}>Submit</Button>
                         </Box>
                             
