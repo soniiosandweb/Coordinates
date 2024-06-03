@@ -9,7 +9,7 @@ import New from './components/New';
 
 function App() {
   return (
-    <BrowserRouter basename='/shortestpathfinder'>
+    <BrowserRouter basename='/maproute'>
 
     <Routes>
 
