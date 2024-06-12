@@ -667,6 +667,7 @@ function Map() {
 
         updatePoints(pointsArray);
         setTableData(pointsArray);
+        setSelectedLocation(JSON.stringify(pointsArray[0]));
         calculateDistancePath(pointsArray);
         modalForm.onClose();
       })
