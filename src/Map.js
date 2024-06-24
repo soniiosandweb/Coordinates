@@ -63,16 +63,16 @@ function Map() {
             console.log("Location name not found");
           }
         },
-        () => {
-          toast({
-            description:
-              "Please Allow The Location To Acces Your Current Location.",
-            position: "top",
-            status: "error",
-            duration: 3500,
-            isClosable: true,
-          });
-        }
+        // () => {
+        //   toast({
+        //     description:
+        //       "Please Allow The Location To Acces Your Current Location.",
+        //     position: "top",
+        //     status: "error",
+        //     duration: 3500,
+        //     isClosable: true,
+        //   });
+        // }
       );
     } else {
       toast({
