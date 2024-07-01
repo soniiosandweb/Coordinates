@@ -11,8 +11,13 @@ header#chakra-modal--header-\:r9\: {
   font-size: xx-large;
 }
 
-input.chakra-input.css-1cjy4zv {
+#coordinatesForm input.chakra-input.css-1cjy4zv {
   border: 1px solid;
+  min-width: 150px;
+}
+.coordinatesForm,
+.table-container{
+  overflow-x:auto;
 }
 .distance {
   font-weight: 700;

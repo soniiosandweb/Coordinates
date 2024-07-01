@@ -1,9 +1,9 @@
 import React, { useRef, useState, useEffect } from "react";
 import { FaTimes } from "react-icons/fa";
-import { useToast } from "@chakra-ui/react";
+import { Stack, useToast } from "@chakra-ui/react";
 import { sortByDistance } from "sort-by-distance";
 import { LoadScript,GoogleMap, Autocomplete } from "@react-google-maps/api";
-import { Box, Button, ButtonGroup, Flex, HStack, IconButton, Input, Text, Select, Spinner, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure, FormControl } from "@chakra-ui/react";
+import { Box, Button, ButtonGroup, Flex, IconButton, Input, Text, Select, Spinner, Modal, ModalOverlay, ModalContent, ModalHeader, ModalFooter, ModalBody, ModalCloseButton, useDisclosure, FormControl } from "@chakra-ui/react";
 import { CloseButton } from "@chakra-ui/react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
@@ -677,7 +677,7 @@ function Map() {
   };
 
   return (
-    <Flex position="relative" flexDirection="column" alignItems="center" h="100vh" w="100vw">
+    <Flex position="relative" flexDirection="column" alignItems="center" p={2} h="100vh" w="100vw">
       <LoadScript
         googleMapsApiKey={process.env.REACT_APP_API_MAP_KEY}
         libraries={['places']}
@@ -698,8 +698,8 @@ function Map() {
           </GoogleMap>
         </Box>
 
-        <Box p={4} borderRadius="lg" m={4} bgColor="white" shadow="base" minW="container.md" zIndex="1">
-          <HStack spacing={2} justifyContent="space-between">
+        <Box p={4} borderRadius="lg" bgColor="white" shadow="base" maxW="container.md" zIndex="1" w="100%">
+          <Stack direction={['column', 'column', 'column', 'row', 'row']} spacing={2} justifyContent="space-between">
             <Box flexGrow={1}>
               <Autocomplete>
                 <Input type="text" defaultValue={currentlocation} placeholder="Start" name="start_location" ref={originRef} />
@@ -722,9 +722,9 @@ function Map() {
               </Button>
               <IconButton aria-label="center back" icon={<FaTimes />} onClick={clearRoute} />
             </ButtonGroup>
-          </HStack>
+          </Stack>
 
-          <HStack spacing={2} mt={5} justifyContent="space-between">
+          <Stack direction={['column', 'column', 'row']} spacing={2} mt={5} justifyContent="space-between">
             <Select flex={1} value={selectedLocation} onChange={(e) => handleCoordinateSelection(e.target.value)} name="coordinate_selection"
             >
               <option value="" disabled>Select location</option>
@@ -750,7 +750,7 @@ function Map() {
               </Button>
             </Box>
 
-          </HStack>
+          </Stack>
         </Box>
 
         <Box>
@@ -823,6 +823,8 @@ function Map() {
                   <Box className="coordinates-form-container">
                     {formData ?  
                       <form method="POST" id="coordinatesForm" onSubmit={handleFormSubmit}>
+
+                        <div className="coordinatesForm">
                         <table className="table-container" border="1">
                           <tbody>
                             <tr>
@@ -900,9 +902,10 @@ function Map() {
                             ))}
                           </tbody>
                         </table>
+                        </div>
 
                         <Box marginTop={5} className="text-center" display="flex" gap="10" justifyContent="center" bottom="0" zIndex={99} backgroundColor="white" padding="20px">
-                          <Button colorScheme='blue' type='submit' width="20%" height={12}>Submit</Button>
+                          <Button colorScheme='blue' type='submit' maxWidth="20%" height={12}>Submit</Button>
                         </Box>
                             
                       </form>
