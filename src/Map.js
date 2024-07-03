@@ -267,9 +267,11 @@ function Map() {
                 ? parts[0][0]
                 : parts[b - 1][parts[b - 1].length - 1];
 
+            var destination = center && b === parts.length ? center : parts[b][parts[b].length - 1];
+
             var service_options = {
               origin: origin,
-              destination: parts[b][parts[b].length - 1],
+              destination: destination,
               waypoints: waypoints,
               optimizeWaypoints: true,
               provideRouteAlternatives: true,
