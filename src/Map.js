@@ -267,7 +267,9 @@ function Map() {
                 ? parts[0][0]
                 : parts[b - 1][parts[b - 1].length - 1];
 
-            var destination = center && b === parts.length ? center : parts[b][parts[b].length - 1];
+            var destination = center && b === (parts.length - 1) ? center : b === (parts.length - 1) ? parts[0][0] : parts[b][parts[b].length - 1];
+
+            console.log(center + " " + JSON.stringify(destination) + " " + JSON.stringify(origin) + " " + (parts.length - 1) + " " + b)
 
             var service_options = {
               origin: origin,
@@ -700,7 +702,7 @@ function Map() {
           </GoogleMap>
         </Box>
 
-        <Box p={4} borderRadius="lg" bgColor="white" shadow="base" maxW="container.md" zIndex="1" w="100%">
+        <Box p={4} borderRadius="lg" bgColor="white" shadow="base" maxW="container.lg" zIndex="1" w="100%">
           <Stack direction={['column', 'column', 'column', 'row', 'row']} spacing={2} justifyContent="space-between">
             <Box flexGrow={1}>
               <Autocomplete>
