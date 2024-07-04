@@ -269,8 +269,6 @@ function Map() {
 
             var destination = center && b === (parts.length - 1) ? center : b === (parts.length - 1) ? parts[0][0] : parts[b][parts[b].length - 1];
 
-            console.log(center + " " + JSON.stringify(destination) + " " + JSON.stringify(origin) + " " + (parts.length - 1) + " " + b)
-
             var service_options = {
               origin: origin,
               destination: destination,
