@@ -382,9 +382,13 @@ function Map() {
         })
         .then(function (response) {
           if (response.data) {
-            setFormData(response.data);
-            modalForm.onOpen();
-            setLoadingData(false)
+           
+            getCoordinatesData(response.data).then(coordinates => {
+              setFormData(coordinates);
+              modalForm.onOpen();
+              setLoadingData(false)
+            });
+
           }
         })
         .catch(function (response) {
@@ -397,6 +401,41 @@ function Map() {
     }
     
   }
+
+  const getCoordinatesData = async (coordinateData) => {
+    const geocodeAddress = (address) => {
+      return new Promise((resolve, reject) => {
+        const geocoder = new window.google.maps.Geocoder();
+
+        geocoder.geocode({ address }, (results, status) => {
+          if (status === 'OK' && results[0]) {
+            const location = results[0].geometry.location;
+            resolve({
+              lat: location.lat(),
+              lng: location.lng(),
+              formatted: results[0].formatted_address,
+            });
+          } else {
+            console.warn('Geocode failed for:', address, status);
+            resolve(null);
+          }
+        });
+      });
+    };
+
+    for (const element of coordinateData) {
+      if (element.lng === '' && element.lat === '') {
+        const geo = await geocodeAddress(element.name);
+        if (geo) {
+          element.lat = geo.lat;
+          element.lng = geo.lng;
+        }
+      }
+    }
+
+    return coordinateData;
+  };
+
 
   // Calculate Table Distance
   function calculateDistancePath(data){
