@@ -38,6 +38,8 @@ function Map() {
   const [formData, setFormData] = React.useState([]);
   const inputRefs = useRef([]);
 
+  const [draggedIndex, setDraggedIndex] = useState(null);
+
   useEffect(() => {
 
     if (navigator.geolocation) {
@@ -63,16 +65,6 @@ function Map() {
             console.log("Location name not found");
           }
         },
-        // () => {
-        //   toast({
-        //     description:
-        //       "Please Allow The Location To Acces Your Current Location.",
-        //     position: "top",
-        //     status: "error",
-        //     duration: 3500,
-        //     isClosable: true,
-        //   });
-        // }
       );
     } else {
       toast({
@@ -402,6 +394,7 @@ function Map() {
     
   }
 
+  // Get coordinates for empty latitude and longitude from PDF
   const getCoordinatesData = async (coordinateData) => {
     const geocodeAddress = (address) => {
       return new Promise((resolve, reject) => {
@@ -430,6 +423,13 @@ function Map() {
           element.lat = geo.lat;
           element.lng = geo.lng;
         }
+      }
+
+      if(element.lng !== '' && isNaN(parseFloat(element.lng))){
+        element.name += " "+ element.lng;
+        element.lng = element.lat;
+        element.lat = element.extra_data;
+        element.extra_data = '';
       }
     }
 
@@ -717,6 +717,30 @@ function Map() {
     
   };
 
+  // Table row drag start
+  const handleDragStart = (e, index) => {
+    setDraggedIndex(index);
+    e.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  // Table row drop
+  const handleDrop = (e, targetIndex) => {
+    e.preventDefault();
+
+    if (draggedIndex === null || draggedIndex === targetIndex) return;
+
+    const updatedRows = [...formData];
+    const [movedRow] = updatedRows.splice(draggedIndex, 1);
+    updatedRows.splice(targetIndex, 0, movedRow);
+
+    setFormData(updatedRows);
+    setDraggedIndex(null);
+  };
+
   return (
     <Flex position="relative" flexDirection="column" alignItems="center" p={2} h="100vh" w="100vw">
       <LoadScript
@@ -878,7 +902,17 @@ function Map() {
                             </tr>
                                 
                             {formData.map((data, index) => (
-                              <tr key={index}>
+                              <tr 
+                                key={index} 
+                                draggable
+                                onDragStart={(e) => handleDragStart(e, index)}
+                                onDragOver={handleDragOver}
+                                onDrop={(e) => handleDrop(e, index)}
+                                style={{
+                                  cursor: "move",
+                                  background: draggedIndex === index ? "#f0f0f0" : "white",
+                                }}
+                              >
                                 <td className="text-center">{index+1}</td>
                                 <td>
                                   <FormControl isRequired>
