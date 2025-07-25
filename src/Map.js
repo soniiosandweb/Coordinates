@@ -88,7 +88,7 @@ function Map() {
         destinationRef.current.value === ""
       ) {
         toast({
-          description: "Please fill Something Between Finsih loaction Or Pdf..",
+          description: "Please fill Start and Finish location both Or Upload Pdf..",
           position: "top",
           status: "error",
           duration: 1500,
@@ -895,8 +895,8 @@ function Map() {
                             <tr>
                               <th style={{width: "5%"}} className="text-center">S.No.</th>
                               <th style={{width: "30%"}} className="text-center">Location Name</th>
-                              <th style={{width: "15%"}} className="text-center">Latitude</th>
                               <th style={{width: "15%"}} className="text-center">Longitude</th>
+                              <th style={{width: "15%"}} className="text-center">Latitude</th>
                               <th style={{width: "30%"}} className="text-center">Extra Data</th>
                               <th style={{width: "5%"}} className="text-center">Action</th>
                             </tr>
