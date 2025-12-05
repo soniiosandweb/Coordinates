@@ -1,0 +1,8 @@
+.header_main {
+    background-color: var(--color-gray);
+    padding: 12px 40px;
+    color: var(--color-white);
+}
+.header_main .logo_text {
+    font-weight: 600;
+}
