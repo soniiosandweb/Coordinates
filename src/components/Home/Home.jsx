@@ -52,10 +52,12 @@ const Home = () => {
 
   const {pdfItems, error} = useSelector((state) => state.pdfcontents);
   const [tableData, setTableData] = useState(null);
-  const [selectedLocation, setSelectedLocation] = useState(currentlocation);
+  const [selectedLocation, setSelectedLocation] = useState(currentlocation); 
 
+  const [routesList, setRoutesList] = useState([]);
+  const [selectedRouteIndex, setSelectedRouteIndex] = useState(0); 
+  const [latestDirectionsResults, setLatestDirectionsResults] = useState(null); 
   let polylines = [];
-  let markers = []; 
   
   useEffect(() => {
   
@@ -158,11 +160,12 @@ const Home = () => {
         location_option,
         (results, status) => {
 
-          let selectedRouteIndex = 0;
+          let markers = [];
 
           if (status === "OK") {
 
             console.log(results)
+            setLatestDirectionsResults(results);
 
             prevRoute?.forEach(item => item.setMap(null));
 
@@ -175,6 +178,15 @@ const Home = () => {
             // Clear old polylines
             polylines.forEach(p => p.setMap(null));
             polylines = [];
+
+            const extractedRoutes = results.routes.map((route, index) => ({ 
+              index, 
+              distance: route.legs[0].distance.text, 
+              duration: route.legs[0].duration.text, 
+              summary: route.summary, 
+            })); 
+            
+            setRoutesList(extractedRoutes);
 
             // Renderer for start/end default markers
             const markerRenderer = new window.google.maps.DirectionsRenderer({
@@ -196,38 +208,38 @@ const Home = () => {
 
               const route = results.routes[routeIndex];
 
-              route.legs[0].steps.forEach((step, i) => {
+              // route.legs[0].steps.forEach((step, i) => {
 
-                if (step.maneuver || i === 0 || i === route.legs[0].steps.length - 1) {
+              //   if (step.maneuver || i === 0 || i === route.legs[0].steps.length - 1) {
 
-                  const marker = new window.google.maps.Marker({
-                    position: step.start_location,
-                    map,
-                    icon: {
-                      path: window.google.maps.SymbolPath.CIRCLE,
-                      scale: 6,
-                      fillColor: "#ffffff",
-                      fillOpacity: 1,
-                      strokeColor: "#0d53ff",
-                      strokeWeight: 2,
-                    },
-                  });
+              //     const marker = new window.google.maps.Marker({
+              //       position: step.start_location,
+              //       map,
+              //       icon: {
+              //         path: window.google.maps.SymbolPath.CIRCLE,
+              //         scale: 6,
+              //         fillColor: "#ffffff",
+              //         fillOpacity: 1,
+              //         strokeColor: "#0d53ff",
+              //         strokeWeight: 2,
+              //       },
+              //     });
 
-                  const info = new window.google.maps.InfoWindow({
-                    content: `
-                      <div style="font-size:14px">
-                        <strong>${step.instructions}</strong><br>
-                        ${step.distance.text} • ${step.duration.text}
-                      </div>
-                    `,
-                  });
+              //     const info = new window.google.maps.InfoWindow({
+              //       content: `
+              //         <div style="font-size:14px">
+              //           <strong>${step.instructions}</strong><br>
+              //           ${step.distance.text} • ${step.duration.text}
+              //         </div>
+              //       `,
+              //     });
 
-                  marker.addListener("mouseover", () => info.open(map, marker));
-                  marker.addListener("mouseout", () => info.close());
+              //     marker.addListener("mouseover", () => info.open(map, marker));
+              //     marker.addListener("mouseout", () => info.close());
 
-                  markers.push(marker);
-                }
-              });
+              //     markers.push(marker);
+              //   }
+              // });
 
               // Update UI
               setDistance(route.legs[0].distance.text);
@@ -248,7 +260,8 @@ const Home = () => {
               });
 
               polyline.addListener("click", () => {
-                selectedRouteIndex = index;
+                setSelectedRouteIndex(index);
+                highlightRoute(index);
 
                 // Highlight clicked route
                 polylines.forEach((p, i) => {
@@ -677,10 +690,9 @@ const Home = () => {
   
     if(isNaN(parseFloat(value))){
       inputRefs.current["lat_"+index].classList.add("focussed");
-    } else {
-      inputRefs.current["lat_"+index].classList.remove("focussed");
-    }
-  
+      } else {
+        inputRefs.current["lat_"+index].classList.remove("focussed");
+      }
     setFormData(newInputFields);
   }
   
@@ -834,6 +846,7 @@ const Home = () => {
     originRef.current.value = "";
     destinationRef.current.value = "";
     setFile("")
+    setFileName("");
     setPoints(null);
     setTableData(null);
       
@@ -899,6 +912,20 @@ const Home = () => {
       return;
     }
   }
+
+  const handleSelectRoute = (index) => { 
+    setSelectedRouteIndex(index); 
+    highlightRoute(index); 
+  };
+
+  const highlightRoute = (routeIndex) => { 
+    polylines.forEach((p, i) => { 
+      p.setOptions({ 
+        strokeOpacity: i === routeIndex ? 1 : 0.4, 
+        strokeWeight: i === routeIndex ? 6 : 5, 
+      }); 
+    }); 
+  };
 
   return (
     <LoadScript
@@ -989,8 +1016,33 @@ const Home = () => {
             </div>
 
             <div className="sidebar_box_columns border-top">
-              <p className="sidebar_heading">"Expect delays due to heavy traffic ahead."</p>
-              <p className="file_helper">No known road disruptions. Traffic incidents will show up here.</p>
+              {distance && duration ?
+                <>
+                  {distance && <p className="sidebar_heading">Distance: {distance}</p>}
+                  {duration && <p className="sidebar_heading">Duration: {duration}</p>}
+                </>
+              :
+                <>
+                  <p className="sidebar_heading">"Expect delays due to heavy traffic ahead."</p>
+                  <p className="file_helper">No known road disruptions. Traffic incidents will show up here.</p>
+                </>
+              }
+              {routesList.map((r) => ( 
+                <div 
+                  key={r.index} 
+                  onClick={() => handleSelectRoute(r.index)} 
+                  style={{ 
+                    padding: "10px", 
+                    cursor: "pointer", 
+                    marginBottom: "10px", 
+                    // background: selectedRouteIndex === r.index ? "#0d53ff" : "#fff", 
+                    // color: selectedRouteIndex === r.index ? "#fff" : "#000", 
+                    border: selectedRouteIndex === r.index ? "1px solid #0d53ff" : "none"
+                  }}
+                >
+                  <strong>{r.summary}</strong><br/> {r.distance} — {r.duration} 
+                </div> ))}
+              
             </div>
           </div>
           

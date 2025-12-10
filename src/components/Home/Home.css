@@ -100,7 +100,7 @@ button.sidebar_close_btn {
     line-height: 1.2;
 }
 .input_rows_block {
-    padding: 2rem 0;
+    padding: 1rem 0;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -171,7 +171,7 @@ button.sidebar_close_btn {
     left: 5px;
 }
 .sidebar_heading.middle_text {
-    padding-bottom: 2rem;
+    padding-bottom: 1rem;
 }
 .file_helper {
     color: var(--color-border);
@@ -230,4 +230,24 @@ button.calculate_route:hover {
     font-size: 14px;
     flex: 1 1;
     word-break: break-word;
+}
+@media (max-width: 991px) {
+    .home_page_block {
+        flex-direction: column-reverse;
+    }
+    .home_sidebar_block {
+        width: 100%;
+        height: 80vh;
+    }
+    button.sidebar_close_btn {
+        left: 20px;
+        right: auto;
+        top: -10px;
+    }
+    button.sidebar_close_btn svg {
+        rotate: 270deg;
+    }
+    .home_sidebar_block.hide {
+        height: 0;
+    }
 }
