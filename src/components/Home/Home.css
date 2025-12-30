@@ -75,9 +75,9 @@ button.sidebar_open_btn {
 .sidebar_box_div::-webkit-scrollbar-thumb {
   background: var(--color-border);
 }
-.sidebar_box_columns {
+/* .sidebar_box_columns {
     padding: 2rem;
-}
+} */
 .sidebar_box_columns.border-top {
     border-top: 1px solid #514E4E4D;
 }
@@ -98,9 +98,10 @@ button.sidebar_close_btn {
     font-weight: 700;
     color: var(--color-gray);
     line-height: 1.2;
+    padding: 2rem 2rem 0;
 }
 .input_rows_block {
-    padding: 1rem 0;
+    padding: 1rem 0 0;
     display: flex;
     flex-direction: column;
     gap: 10px;
@@ -109,6 +110,7 @@ button.sidebar_close_btn {
     display: flex;
     align-items: center;
     gap: 10px;
+    position: relative;
 }
 .input_rows_block .input_rows div {
     width: 100%;
@@ -171,12 +173,52 @@ button.sidebar_close_btn {
     left: 5px;
 }
 .sidebar_heading.middle_text {
-    padding-bottom: 1rem;
+    padding-bottom: 1rem !important;
+    padding-top: 1rem !important;
 }
 .file_helper {
     color: var(--color-border);
     font-size: 12px;
     padding: 10px 0;
+}
+.file_helper.bottom_helper {
+    padding: 10px 2rem;
+}
+.sidebar_path_details {
+    padding: 1rem 2rem 0;
+}
+.sidebar_path_details .sidebar_path_via {
+    font-weight: 700;
+    font-size: 15px;
+    color: #000;
+}
+.sidebar_path_details .sidebar_path_via.tolls {
+    display: inline-flex;
+    align-items: center;
+    gap: 3px;
+}
+.sidebar_path_details .sidebar_path_via.tolls svg {
+    color: #ee404c;
+}
+.sidebar_path_details .sidebar_path_distance {
+    font-size: 14px;
+    color: #5B5756;
+}
+button.destination_btn {
+    font-size: 14px !important;
+    color: #8E8E8E !important;
+    font-family: var(--font-medium);
+    padding: 0 !important;
+    background-color: transparent !important;
+}
+button.remove_destination {
+    padding: 0 !important;
+    background-color: transparent !important;
+    font-size: 14px !important;
+    position: absolute;
+    right: -20px;
+    margin: 0;
+    min-width: 14px;
 }
 button.calculate_route {
     background-color: var(--color-green);
@@ -250,4 +292,105 @@ button.calculate_route:hover {
     .home_sidebar_block.hide {
         height: 0;
     }
+}
+
+
+
+/*  routes diesgn */
+
+.slide_box_columns_route {
+    display: flex;
+    align-items: start;
+    gap: 6px;
+}
+.slide_box_columns_route > strong{
+    width: 55%;
+    /* font-family: "Montserrat-Medium"; */
+    font-size: 14px;
+
+}
+.slide_box_columns_route_Container .tolls_added {
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 2px;
+}
+.slide_box_columns_route_Container .tolls_added svg {
+    color: #ffb400;
+}
+.slide_box_columns_route > div{
+    width: 45%;
+    /* font-family: "Montserrat-Medium"; */
+    font-size: 12px;
+    text-align: right;
+    color: #167D0B;
+
+}
+.slide_box_columns_route > div > .distanceSpan{
+    color: #8F8F8F;
+    /* font-family: "Montserrat-Medium"; */
+    font-size: 10px;
+}
+.slide_box_columns_route_Container{
+    display: flex;
+    padding: 1rem 2rem;
+    flex-direction: column;
+    border-bottom: 1px solid#514E4E4D;
+}
+.slide_box_columns_route_btn {
+    text-align: left;
+    font-family: 'MONTSERRAT-SEMIBOLD' !important;
+    font-size: 14px;
+    color: #105DA2;
+}
+
+
+
+
+/* padding set */
+.chakra-stack.css-11nrrcx {
+    padding: 2rem;
+    padding-top: 0px !important;
+}
+/*  step page */
+
+.stepMainDev {
+    display: flex;
+    padding: 18px 2rem;
+    padding-bottom: 0rem !important;
+    /* display: flex; */
+    align-items: center;
+    gap: 20px;
+}
+p.Duration ,p.Distance {
+    font-size: 12px;
+    color: #8E8E8E;
+}
+.hide{
+    display: none;
+}
+.show{
+    display: show;
+}
+
+
+
+
+/*  */
+.DetailsPageHeading h1 {
+    padding: 20px;
+    display: flex;
+    gap: 8px;
+    align-items: center;
+    text-transform: capitalize;
+}
+.DetailsPageHeading svg {
+    cursor: pointer;
+}
+.DetailsPageHeading strong {
+    flex: 1;
+}
+.DetailsPageHeading {
+    box-shadow: 0px 4px 4px 0px rgba(0, 0, 0, 0.05);
+    color: rgba(91, 87, 86, 1);
 }

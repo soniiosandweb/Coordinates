@@ -1,13 +1,5 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import "./Home.css";
-import {
-  FaArrowUp,
-  FaArrowLeft,
-  FaArrowRight,
-  FaUndo,
-  FaDirections
-} from "react-icons/fa";
-
 import { Autocomplete, GoogleMap, LoadScript } from "@react-google-maps/api";
 import {
   Box,
@@ -41,8 +33,6 @@ import { sortByDistance } from "sort-by-distance";
 import directionImg from "../../assests/images/get-directions-button.png";
 import arrowsIcon from "../../assests/images/two-arrows.png";
 import dotsIcon from "../../assests/images/dots-icon.png";
-import { IoIosCloseCircleOutline, IoIosWarning } from "react-icons/io";
-import { CiCirclePlus } from "react-icons/ci";
 
 // Single-file cleaned & optimized Home component
 const Home = () => {
@@ -50,7 +40,6 @@ const Home = () => {
   const dispatch = useDispatch();
 
   // UI state
-  const [ActiveShow, setActiveShow] = useState(false);
   const [showSidebar, setShowSidebar] = useState(true);
   const [loadingData, setLoadingData] = useState(false);
 
@@ -68,7 +57,6 @@ const Home = () => {
   const [distance, setDistance] = useState("");
   const [duration, setDuration] = useState("");
   const [routesList, setRoutesList] = useState([]);
-  const [stepRouteList , setStepRouteList] = useState([]);
   const [selectedRouteIndex, setSelectedRouteIndex] = useState(0);
   const [latestDirectionsResults, setLatestDirectionsResults] = useState(null);
 
@@ -90,9 +78,6 @@ const Home = () => {
 
   const modalTable = useDisclosure();
   const modalForm = useDisclosure();
-
-  const [waypoints, setWaypoints] = useState([]);
-  const [routeCalculated, setRouteCalculated] = useState(false);
 
   // utility: clear previous polylines, markers, renderers
   const clearMapObjects = useCallback(() => {
@@ -154,40 +139,6 @@ const Home = () => {
       }
     });
   }, []);
-      const getManeuverIcon = (maneuver) => {
-      switch (maneuver) {
-        case "turn-left":
-        case "turn-slight-left":
-        case "turn-sharp-left":
-          return <FaArrowLeft />;
-
-        case "turn-right":
-        case "turn-slight-right":
-        case "turn-sharp-right":
-          return <FaArrowRight />;
-
-        case "uturn-left":
-        case "uturn-right":
-          return <FaUndo />;
-
-        case "straight":
-          return <FaArrowUp />;
-
-        case "keep-left":
-          return <FaArrowLeft />;
-
-        case "keep-right":
-          return <FaArrowRight />;
-
-        case "roundabout-left":
-        case "roundabout-right":
-          return <FaDirections />;
-
-        default:
-          return <FaArrowUp />;
-      }
-    };
-
 
   const getCurrentLocation = async () => {
     if (!navigator.geolocation) return;
@@ -229,7 +180,7 @@ const Home = () => {
 
         const info = new window.google.maps.InfoWindow({
           content: `
-            <div className='PopupShowTurn' style="font-size:14px; max-width:240px">
+            <div style="font-size:14px; max-width:240px">
               <strong>${step.instructions}</strong><br/>
               ${step.distance?.text || ""} • ${step.duration?.text || ""}
             </div>
@@ -372,24 +323,7 @@ const Home = () => {
     // use cached or create directionsService
     const directionsService = new window.google.maps.DirectionsService();
 
-    const allStops = [
-      originRef.current.value,
-      destinationRef.current.value,
-      ...waypoints.map(w => w.current?.value).filter(Boolean),
-    ];
-
-    // last input is END
-    const request = {
-      origin: allStops[0],
-      destination: allStops[allStops.length - 1],
-      waypoints: allStops.slice(1, -1).map(location => ({
-        location,
-        stopover: true,
-      })),
-      optimizeWaypoints: false,
-      provideRouteAlternatives: true,
-      travelMode: window.google.maps.TravelMode.DRIVING,
-    };
+    const request = { origin: originRef.current.value, destination: destinationRef.current.value, provideRouteAlternatives: true, travelMode: window.google.maps.TravelMode.DRIVING };
 
     directionsService.route(request, (results, status) => {
       if (status !== "OK") {
@@ -399,51 +333,16 @@ const Home = () => {
       }
 
       setLatestDirectionsResults(results);
-      setRouteCalculated(true);
-      console.log(results);
-      
 
       // set routesList (simple summary)
-      const extractedRoutes = results.routes.map((route, index) => {
-        const hasTolls = route.legs[0].steps.some(step =>
-          step.instructions?.toLowerCase().includes("toll")
-        );
-
-        return {
-          index,
-          distance: route.legs[0].distance.text,
-          duration: route.legs[0].duration.text,
-          summary: route.summary,
-          hasTolls: Boolean(hasTolls),
-        };
-      });
+      const extractedRoutes = results.routes.map((route, index) => ({ index, distance: route.legs[0].distance.text, duration: route.legs[0].duration.text, summary: route.summary }));
       setRoutesList(extractedRoutes);
-      
-      console.log(extractedRoutes);
-      
-
-
-
-      // steps.forEach((step, index) => {
-      //   console.log(`Step ${index + 1}`);
-      //   console.log(step);
-      //   console.log("Instruction:", step.instructions);
-      //   console.log("Distance:", step.distance.text);
-      //   console.log("Duration:", step.duration.text);
-      //   console.log("Maneuver:", step.maneuver || "N/A");
-      //   console.log("Start:", step.start_location);
-      //   console.log("End:", step.end_location);
-      //   console.log("----------------------");
-      // });
-
-      
 
       // render start/end markers using DirectionsRenderer (suppresses polylines)
       renderStartEndMarkers(results);
 
       // draw polylines and wire clicks
       drawPolylinesForResults(results);
-      
 
       // default: show markers for first route and set distance/duration
       if (results.routes && results.routes[0]) {
@@ -456,13 +355,6 @@ const Home = () => {
       setLoadingData(false);
     });
   };
-      
-
-  function handleStepChoice(id){
-    console.log(latestDirectionsResults.routes[id]);
-    const steps = latestDirectionsResults.routes[id];
-    setStepRouteList(steps)
-  }
 
   // --- geocode helper for PDF coordinates ---
   const geocodeAddress = (address) =>
@@ -703,11 +595,9 @@ const Home = () => {
     setFileName("");
     setPoints(null);
     setTableData(null);
-    setWaypoints([]);
-    setRouteCalculated(false);
   };
 
-  const handleCloseSidebar = () => { clearRoute(); setShowSidebar(false); setActiveShow(false); };
+  const handleCloseSidebar = () => { clearRoute(); setShowSidebar(false); };
   const handleOpenSidebar = () => { setShowSidebar(true); if (searchDefaultRef.current) searchDefaultRef.current.value = ""; };
 
   const handleDefaultSearch = () => {
@@ -740,26 +630,6 @@ const Home = () => {
     if (latestDirectionsResults && latestDirectionsResults.routes && latestDirectionsResults.routes[index]) showTurnMarkers(latestDirectionsResults.routes[index]);
   };
 
-  const addWaypoint = () => {
-    if (waypoints.length >= 10) {
-      toast({
-        description: "You can add up to 10 destinations only.",
-        position: "top",
-        status: "warning",
-        duration: 2000,
-        isClosable: true,
-      });
-      return;
-    }
-
-    // create NEW empty destination
-    setWaypoints((prev) => [...prev, React.createRef()]);
-  };
-
-  const removeWaypoint = (index) => {
-    setWaypoints((prev) => prev.filter((_, i) => i !== index));
-  };
-
   // render
   return (
     <LoadScript googleMapsApiKey={process.env.REACT_APP_API_MAP_KEY} libraries={["places"]}>
@@ -782,8 +652,7 @@ const Home = () => {
             <MdKeyboardDoubleArrowRight />
           </Button>
 
-          <div className="sidebar_box_div" id="sidebar_box_div">
-            {ActiveShow ? <div></div>:
+          <div className="sidebar_box_div">
             <div className="sidebar_box_columns">
               <p className="sidebar_heading">"A smarter way to navigate — real-time routes</p>
 
@@ -803,64 +672,11 @@ const Home = () => {
                   </div>
 
                   <div className="input_rows">
-                    {routeCalculated && waypoints.length >= 1 ?
-                      <FaRegCircle className="input_icon" />
-                    :
-                      <FaMapMarkerAlt className="input_icon location" />
-                    }
-                    
+                    <FaMapMarkerAlt className="input_icon location" />
                     <Autocomplete>
                       <Input type="text" placeholder="Choose Destination" ref={destinationRef} name="destination_location" />
                     </Autocomplete>
                   </div>
-
-                  {/* Multiple Destinations (Waypoints) */}
-                  {routeCalculated && (
-                    <>
-                      {waypoints.map((ref, index) => (
-                        <div className="input_rows" key={index}>
-                          {index === waypoints.length - 1 ?
-                            <FaMapMarkerAlt className="input_icon location" />
-                          :
-                            <FaRegCircle className="input_icon" />
-                          }
-                          
-                          <Autocomplete>
-                            <Input
-                              type="text"
-                              placeholder={index === waypoints.length - 1
-                                ? "Choose Destination"
-                                : `Destination ${index + 1}`}
-                              ref={ref}
-                            />
-                          </Autocomplete>
-                          <IconButton
-                            ml={2}
-                            size="sm"
-                            icon={<IoIosCloseCircleOutline />}
-                            aria-label="Remove stop"
-                            onClick={() => removeWaypoint(index)}
-                            className="remove_destination"
-                          />
-                        </div>
-                      ))}
-
-                      <div className="input_rows">
-                        <CiCirclePlus />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={addWaypoint}
-                          isDisabled={waypoints.length >= 10}
-                          className="destination_btn"
-                        >
-                          Add Destination
-                        </Button>
-                      </div>
-                      
-                    </>
-                  )}
-
                 </Box>
 
                 <Box flexGrow={1}><p className="sidebar_heading middle_text">Or</p></Box>
@@ -882,98 +698,33 @@ const Home = () => {
                   <Button onClick={() => { if (file) modalForm.onOpen(); else toast({ description: "Error: Please upload PDF.", position: "top", status: "error", duration: 2500, isClosable: true }); }} className="table_form_data" variant="outline">Form Data</Button>
                 </Box>
               </Stack>
-            </div>}
-            {ActiveShow ? <div></div>:
+            </div>
 
             <div className="sidebar_box_columns border-top">
               {routesList && routesList.length >= 1 ? (
                 routesList.map((r) => (
-                  <div key={r.index} className="slide_box_columns_route_Container" style={{
-                   borderLeft: selectedRouteIndex === r.index ? "5px solid #0d53ff" : "none", 
-                  }}>
-                  <div key={r.index} onClick={() => handleSelectRoute(r.index)  }
-                  className="slide_box_columns_route"
-                  style={{ 
-                      // paddingBottom:"10px", 
+                  <div key={r.index} onClick={() => handleSelectRoute(r.index)} style={{ 
+                      padding: "10px", 
                       cursor: "pointer", 
+                      marginBottom: "10px", 
                       // background: selectedRouteIndex === r.index ? "#0d53ff" : "#fff", 
-                      color: selectedRouteIndex === r.index ? "#105DA2" : "#000", 
-                      fontFamily: selectedRouteIndex === r.index ?"Montserrat-Bold":"Montserrat-Medium", 
+                      color: selectedRouteIndex === r.index ? "#0d53ff" : "#000", 
                       // border: selectedRouteIndex === r.index ? "1px solid #0d53ff" : "none"
                     }}>
-                    <strong>Via {r.summary}</strong> 
-                    <div>
-                      {r.duration} <br /> 
-                      <span className="distanceSpan">{r.distance}</span>
-                    </div>
-
-                  </div >
-                  {r.hasTolls && <p className="tolls_added"><IoIosWarning /> This Route has Tolls.</p>}
-                  
-                    {
-                      selectedRouteIndex === r.index ? <button className="slide_box_columns_route_btn" type="button" onClick={() => {
-                          setActiveShow(!ActiveShow);
-                          handleStepChoice(r.index);
-                          
-                          const element = document.getElementById('sidebar_box_div');
-                          setTimeout(() => {
-                            element.scrollTo({ top: 0, behavior: 'smooth' });
-                          }, 0);
-                        }}
-                            > Details</button>:<span></span>
-                    }
+                    <strong>{r.summary}</strong><br /> {r.distance} — {r.duration}
                   </div>
                 ))
               ) : (
                 <>
                   <p className="sidebar_heading">"Expect delays due to heavy traffic ahead."</p>
-                  <p className="file_helper bottom_helper">No known road disruptions. Traffic incidents will show up here.</p>
+                  <p className="file_helper">No known road disruptions. Traffic incidents will show up here.</p>
                   {distance && <p className="sidebar_heading">Distance: {distance}</p>}
                   {duration && <p className="sidebar_heading">Duration: {duration}</p>}
                 </>
               )}
 
               
-
-            </div>}
-            {ActiveShow ? 
-
-         <div>
-          <div className="DetailsPageHeading">
-                <h1 onClick={()=>{setActiveShow(!ActiveShow)}}>
-                <FaArrowLeft />
-                <strong>
-                 {latestDirectionsResults.request.origin.query} to {latestDirectionsResults.request.destination.query}</strong></h1>
             </div>
-
-            <div className="sidebar_path_details">
-              <p className="sidebar_path_distance">{stepRouteList.legs[0].duration.text} ({stepRouteList.legs[0].distance.text})</p>
-              {stepRouteList.legs[0].steps.some(step =>
-                step.instructions?.toLowerCase().includes("toll")
-              ) && <p className="sidebar_path_via tolls"><IoIosWarning /> This Route has Tolls.</p>}
-              <p className="sidebar_path_via">Via {stepRouteList.summary}</p>
-            </div>
-
-                {
-                  stepRouteList.legs[0].steps.map((step, index) => (
-                  <div key={index} className="stepMainDev">
-                    <div className="stepDivIcon" style={{ fontSize: "20px" }}>
-                      {getManeuverIcon(step.maneuver)}
-                    </div>
-                    <div className="stepDivForText">
-                    <p
-                      dangerouslySetInnerHTML={{
-                        __html: step.instructions
-                      }}
-                    />
-                    <p className="Duration"> {step.duration.text}</p>
-                    <p className="Distance"> {step.distance.text}</p>
-                    </div>
-                  </div>
-                ))
-              }
-
-            </div>:<div></div>}
           </div>
         </div>
 
