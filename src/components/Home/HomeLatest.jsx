@@ -41,6 +41,7 @@ import { sortByDistance } from "sort-by-distance";
 import directionImg from "../../assests/images/get-directions-button.png";
 import arrowsIcon from "../../assests/images/two-arrows.png";
 import dotsIcon from "../../assests/images/dots-icon.png";
+import dotsIconLess from "../../assests/images/dots-icon_less.png";
 import { IoIosCloseCircleOutline, IoIosWarning } from "react-icons/io";
 import { CiCirclePlus } from "react-icons/ci";
 
@@ -93,6 +94,9 @@ const Home = () => {
 
   const [waypoints, setWaypoints] = useState([]);
   const [routeCalculated, setRouteCalculated] = useState(false);
+  const [pdfRoutes, setPdfRoutes] = useState(false);
+  const [sidebarDragIndex, setSidebarDragIndex] = useState(null);
+  const [sidebarCoordinates, setSidebarCoordinates] = useState([]);
 
   // utility: clear previous polylines, markers, renderers
   const clearMapObjects = useCallback(() => {
@@ -336,7 +340,15 @@ const Home = () => {
         const origin = b === 0 ? (center || { lat: parts[0][0].lat, lng: parts[0][0].lng }) : { lat: parts[b - 1][parts[b - 1].length - 1].lat, lng: parts[b - 1][parts[b - 1].length - 1].lng };
         const destination = b === parts.length - 1 ? (center || { lat: parts[0][0].lat, lng: parts[0][0].lng }) : { lat: parts[b][parts[b].length - 1].lat, lng: parts[b][parts[b].length - 1].lng };
 
-        const serviceOptions = { origin, destination, waypoints, optimizeWaypoints: true, provideRouteAlternatives: true, travelMode: window.google.maps.TravelMode.DRIVING, unitSystem: window.google.maps.UnitSystem.METRIC };
+        const serviceOptions = { 
+          origin, 
+          destination, 
+          waypoints, 
+          optimizeWaypoints: true, 
+          provideRouteAlternatives: true, 
+          travelMode: window.google.maps.TravelMode.DRIVING, 
+          unitSystem: window.google.maps.UnitSystem.METRIC 
+        };
 
         // wrap callback style in a Promise so we can await
         await new Promise((resolve) => {
@@ -346,6 +358,7 @@ const Home = () => {
               // keep renderer so it can be cleared later
               rendererRef.current.push(directionsRenderer);
               // compute and collect distances
+              console.log(response)
               computeTotalDistanceNew(response);
               resolve();
             } else {
@@ -525,6 +538,7 @@ const Home = () => {
     if (result) {
       totalDistAccumulator.current.push(result);
       computeTotalDistance(totalDistAccumulator.current);
+      setPdfRoutes(true);
     }
   };
 
@@ -669,6 +683,7 @@ const Home = () => {
       const pointsArray = formData.map((data, idx) => ({ id: idx, name: data.name, lng: parseFloat(data.lng), lat: parseFloat(data.lat) }));
       updatePoints(pointsArray);
       setTableData(pointsArray);
+      setSidebarCoordinates(pointsArray);
       setSelectedRouteIndex(0);
       calculateDistancePath(pointsArray);
       modalForm.onClose();
@@ -703,8 +718,11 @@ const Home = () => {
     setFileName("");
     setPoints(null);
     setTableData(null);
+    setSidebarCoordinates([]);
     setWaypoints([]);
     setRouteCalculated(false);
+    setPdfRoutes(false);
+    setSidebarDragIndex(null);
   };
 
   const handleCloseSidebar = () => { clearRoute(); setShowSidebar(false); setActiveShow(false); };
@@ -760,6 +778,42 @@ const Home = () => {
     setWaypoints((prev) => prev.filter((_, i) => i !== index));
   };
 
+  const handleSidebarDragStart = (index) => {
+    setSidebarDragIndex(index);
+  };
+
+  const handleSidebarDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleSidebarDrop = (e, targetIndex) => {
+    e.preventDefault();
+
+    if (
+      sidebarDragIndex === null ||
+      sidebarDragIndex === targetIndex
+    ) return;
+
+    setSidebarCoordinates((prev) => {
+      const updated = [...prev];
+      const [moved] = updated.splice(sidebarDragIndex, 1);
+      updated.splice(targetIndex, 0, moved);
+
+      setTimeout(() => recalcRouteFromSidebar(updated), 0);
+      
+      return updated;
+    });
+
+    setSidebarDragIndex(null);
+  };
+
+  const recalcRouteFromSidebar = (orderedPoints) => {
+    if (!orderedPoints || orderedPoints.length < 2) return;
+
+    setPoints(orderedPoints);
+    clearMapObjects();
+  };
+
   // render
   return (
     <LoadScript googleMapsApiKey={process.env.REACT_APP_API_MAP_KEY} libraries={["places"]}>
@@ -788,80 +842,116 @@ const Home = () => {
               <p className="sidebar_heading">"A smarter way to navigate — real-time routes</p>
 
               <Stack direction={["column"]} spacing={3}>
-                <Box flexGrow={1} className="input_rows_block">
-                  <div className="input_rows">
-                    <FaRegCircle className="input_icon" />
-                    <Autocomplete>
-                      <Input type="text" defaultValue={currentlocation} placeholder="Choose Starting Point" name="start_location" ref={originRef} />
-                    </Autocomplete>
-                  </div>
-
-                  <div className="input_rows location_middle">
-                    <span className="arrows_dots"><img src={dotsIcon} alt="Dots" className="arrows_dots_icons" /></span>
-                    <p className="your_location_txt" onClick={() => getCurrentLocation()}><BiTargetLock /> Your Location</p>
-                    <img src={arrowsIcon} alt="Arrows" className="arrows_icons" onClick={() => handleReverseLocation()} />
-                  </div>
-
-                  <div className="input_rows">
-                    {routeCalculated && waypoints.length >= 1 ?
-                      <FaRegCircle className="input_icon" />
-                    :
-                      <FaMapMarkerAlt className="input_icon location" />
-                    }
-                    
-                    <Autocomplete>
-                      <Input type="text" placeholder="Choose Destination" ref={destinationRef} name="destination_location" />
-                    </Autocomplete>
-                  </div>
-
-                  {/* Multiple Destinations (Waypoints) */}
-                  {routeCalculated && (
-                    <>
-                      {waypoints.map((ref, index) => (
-                        <div className="input_rows" key={index}>
-                          {index === waypoints.length - 1 ?
-                            <FaMapMarkerAlt className="input_icon location" />
-                          :
-                            <FaRegCircle className="input_icon" />
-                          }
-                          
-                          <Autocomplete>
-                            <Input
-                              type="text"
-                              placeholder={index === waypoints.length - 1
-                                ? "Choose Destination"
-                                : `Destination ${index + 1}`}
-                              ref={ref}
-                            />
-                          </Autocomplete>
-                          <IconButton
-                            ml={2}
-                            size="sm"
-                            icon={<IoIosCloseCircleOutline />}
-                            aria-label="Remove stop"
-                            onClick={() => removeWaypoint(index)}
-                            className="remove_destination"
-                          />
-                        </div>
-                      ))}
-
-                      <div className="input_rows">
-                        <CiCirclePlus />
-                        <Button
+                {sidebarCoordinates && sidebarCoordinates.length >=1 ?
+                  <Box flexGrow={1} className="input_rows_block tableDataRow">
+                    {sidebarCoordinates.map((coordinate,index) => (
+                      <div 
+                        className={`input_rows ${sidebarDragIndex === index ? "dragging" : ""}`}
+                        key={coordinate.id || index}
+                        draggable
+                        onDragStart={() => handleSidebarDragStart(index)}
+                        onDragOver={handleSidebarDragOver}
+                        onDrop={(e) => handleSidebarDrop(e, index)}
+                      >
+                        {index === sidebarCoordinates.length - 1 ?
+                          <FaMapMarkerAlt className="input_icon location" />
+                        :
+                          <FaRegCircle className="input_icon" />
+                        }
+                        <span className="arrows_dots waypoints_block"><img src={dotsIconLess} alt="Dots" className="arrows_dots_icons" /></span>
+                            
+                        <Input
+                          type="text"
+                          defaultValue={coordinate.name}
+                          readOnly
+                        />
+                        {/* <IconButton
+                          ml={2}
                           size="sm"
-                          variant="outline"
-                          onClick={addWaypoint}
-                          isDisabled={waypoints.length >= 10}
-                          className="destination_btn"
-                        >
-                          Add Destination
-                        </Button>
+                          icon={<IoIosCloseCircleOutline />}
+                          aria-label="Remove stop"
+                          className="remove_destination"
+                        /> */}
                       </div>
-                      
-                    </>
-                  )}
+                    ))}
+                  </Box>
+                :
+                  <Box flexGrow={1} className="input_rows_block">
+                    <div className="input_rows">
+                      <FaRegCircle className="input_icon" />
+                      <Autocomplete>
+                        <Input type="text" defaultValue={currentlocation} placeholder="Choose Starting Point" name="start_location" ref={originRef} />
+                      </Autocomplete>
+                    </div>
 
-                </Box>
+                    <div className="input_rows location_middle">
+                      <span className="arrows_dots"><img src={dotsIcon} alt="Dots" className="arrows_dots_icons" /></span>
+                      <p className="your_location_txt" onClick={() => getCurrentLocation()}><BiTargetLock /> Your Location</p>
+                      <img src={arrowsIcon} alt="Arrows" className="arrows_icons" onClick={() => handleReverseLocation()} />
+                    </div>
+
+                    <div className="input_rows">
+                      {routeCalculated && waypoints.length >= 1 ?
+                        <FaRegCircle className="input_icon" />
+                      :
+                        <FaMapMarkerAlt className="input_icon location" />
+                      }
+                      
+                      <Autocomplete>
+                        <Input type="text" placeholder="Choose Destination" ref={destinationRef} name="destination_location" />
+                      </Autocomplete>
+                    </div>
+
+                    {/* Multiple Destinations (Waypoints) */}
+                    {routeCalculated && (
+                      <>
+                        {waypoints.map((ref, index) => (
+                          <div className="input_rows" key={index}>
+                            {index === waypoints.length - 1 ?
+                              <FaMapMarkerAlt className="input_icon location" />
+                            :
+                              <FaRegCircle className="input_icon" />
+                            }
+                            <span className="arrows_dots waypoints_block"><img src={dotsIconLess} alt="Dots" className="arrows_dots_icons" /></span>
+                            
+                            <Autocomplete>
+                              <Input
+                                type="text"
+                                placeholder={index === waypoints.length - 1
+                                  ? "Choose Destination"
+                                  : `Destination ${index + 1}`}
+                                ref={ref}
+                              />
+                            </Autocomplete>
+                            <IconButton
+                              ml={2}
+                              size="sm"
+                              icon={<IoIosCloseCircleOutline />}
+                              aria-label="Remove stop"
+                              onClick={() => removeWaypoint(index)}
+                              className="remove_destination"
+                            />
+                          </div>
+                        ))}
+
+                        <div className="input_rows">
+                          <CiCirclePlus />
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={addWaypoint}
+                            isDisabled={waypoints.length >= 10}
+                            className="destination_btn"
+                          >
+                            Add Destination
+                          </Button>
+                        </div>
+                        
+                      </>
+                    )}
+
+                  </Box>
+                }
 
                 <Box flexGrow={1}><p className="sidebar_heading middle_text">Or</p></Box>
 
@@ -885,51 +975,73 @@ const Home = () => {
             </div>}
             {ActiveShow ? <div></div>:
 
-            <div className="sidebar_box_columns border-top">
-              {routesList && routesList.length >= 1 ? (
-                routesList.map((r) => (
-                  <div key={r.index} className="slide_box_columns_route_Container" style={{
-                   borderLeft: selectedRouteIndex === r.index ? "5px solid #0d53ff" : "none", 
-                  }}>
-                  <div key={r.index} onClick={() => handleSelectRoute(r.index)  }
-                  className="slide_box_columns_route"
-                  style={{ 
-                      // paddingBottom:"10px", 
-                      cursor: "pointer", 
-                      // background: selectedRouteIndex === r.index ? "#0d53ff" : "#fff", 
-                      color: selectedRouteIndex === r.index ? "#105DA2" : "#000", 
-                      fontFamily: selectedRouteIndex === r.index ?"Montserrat-Bold":"Montserrat-Medium", 
-                      // border: selectedRouteIndex === r.index ? "1px solid #0d53ff" : "none"
-                    }}>
-                    <strong>Via {r.summary}</strong> 
-                    <div>
-                      {r.duration} <br /> 
-                      <span className="distanceSpan">{r.distance}</span>
-                    </div>
-
-                  </div >
-                  {r.hasTolls && <p className="tolls_added"><IoIosWarning /> This Route has Tolls.</p>}
-                  
-                    {
-                      selectedRouteIndex === r.index ? <button className="slide_box_columns_route_btn" type="button" onClick={() => {
-                          setActiveShow(!ActiveShow);
-                          handleStepChoice(r.index);
-                          
-                          const element = document.getElementById('sidebar_box_div');
-                          setTimeout(() => {
-                            element.scrollTo({ top: 0, behavior: 'smooth' });
-                          }, 0);
+              <div className="sidebar_box_columns border-top">
+                {routesList && routesList.length >= 1 ? (
+                  routesList.map((r) => (
+                    <div 
+                      key={r.index} 
+                      className="slide_box_columns_route_Container" 
+                      style={{
+                        borderLeft: selectedRouteIndex === r.index ? "5px solid #0d53ff" : "none", 
+                      }}
+                    >
+                      <div 
+                        key={r.index} 
+                        onClick={() => handleSelectRoute(r.index)  }
+                        className="slide_box_columns_route"
+                        style={{ 
+                          // paddingBottom:"10px", 
+                          cursor: "pointer", 
+                          // background: selectedRouteIndex === r.index ? "#0d53ff" : "#fff", 
+                          color: selectedRouteIndex === r.index ? "#105DA2" : "#000", 
+                          fontFamily: selectedRouteIndex === r.index ?"Montserrat-Bold":"Montserrat-Medium", 
+                          // border: selectedRouteIndex === r.index ? "1px solid #0d53ff" : "none"
                         }}
-                            > Details</button>:<span></span>
+                      >
+                        <strong>Via {r.summary}</strong> 
+                        <div>
+                          {r.duration} <br /> 
+                          <span className="distanceSpan">{r.distance}</span>
+                        </div>
+
+                      </div >
+                      {r.hasTolls && <p className="tolls_added"><IoIosWarning /> This Route has Tolls.</p>}
+                  
+                      {selectedRouteIndex === r.index ? 
+                        <button 
+                          className="slide_box_columns_route_btn" 
+                          type="button" 
+                          onClick={() => {
+                            setActiveShow(!ActiveShow);
+                            handleStepChoice(r.index);
+                          
+                            const element = document.getElementById('sidebar_box_div');
+                            setTimeout(() => {
+                              element.scrollTo({ top: 0, behavior: 'smooth' });
+                            }, 0);
+                          }}
+                        >
+                          Details
+                        </button>
+                      :<span></span>
                     }
                   </div>
                 ))
+              ) : pdfRoutes ?(
+                <div
+                  className="slide_box_columns_route_Container" 
+                  style={{
+                    borderLeft: "5px solid #0d53ff", 
+                  }}
+                >
+                  
+                    <strong>Distance: {distance}</strong>
+                    <strong>Duration: {duration}</strong>
+                </div>
               ) : (
                 <>
                   <p className="sidebar_heading">"Expect delays due to heavy traffic ahead."</p>
                   <p className="file_helper bottom_helper">No known road disruptions. Traffic incidents will show up here.</p>
-                  {distance && <p className="sidebar_heading">Distance: {distance}</p>}
-                  {duration && <p className="sidebar_heading">Duration: {duration}</p>}
                 </>
               )}
 
